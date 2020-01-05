@@ -10,3 +10,5 @@ $ <script> --help
 ## Scripts
 * [getResourcesCSV.sh](getResourcesCSV.sh): Get all pods resources requests and limits per container in a CSV format with values normalized. 
 CSV format is very automation friendly and is great for pasting in an Excel or Google sheet for further processing.
+* [podReady](podReady.sh): Simple script to check if pod is really ready. Check status is 'Running' and that all containers are ready.
+Return 1 is not ready. Return 0 is ready.
