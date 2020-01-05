@@ -4,6 +4,7 @@ OUT=resources.csv
 NAMESPACE=--all-namespaces
 QUITE=false
 HEADERS=true
+SCRIPT_NAME=$0
 
 ######### Functions #########
 
@@ -17,7 +18,7 @@ usage () {
 
 ${SCRIPT_NAME} - Extract resource requests and limits in a Kubernetes cluster for a selected namespace or all namespaces in a CSV format
 
-Usage: ./${SCRIPT_NAME} <options>
+Usage: ${SCRIPT_NAME} <options>
 
 -n | --namespace <name>                : Namespace to analyse.    Default: --all-namespaces
 -o | --output <name>                   : Output file.             Default: ${OUT}
@@ -27,9 +28,9 @@ Usage: ./${SCRIPT_NAME} <options>
 
 Examples:
 ========
-Get all:                                                  $ ./${SCRIPT_NAME}
-Get for namespace foo:                                    $ ./${SCRIPT_NAME} --namespace foo
-Get for namespace foo and use output file bar.csv :       $ ./${SCRIPT_NAME} --namespace foo --output bar.csv
+Get all:                                                  $ ${SCRIPT_NAME}
+Get for namespace foo:                                    $ ${SCRIPT_NAME} --namespace foo
+Get for namespace foo and use output file bar.csv :       $ ${SCRIPT_NAME} --namespace foo --output bar.csv
 
 END_USAGE
 
