@@ -1,8 +1,8 @@
 #!/bin/bash
 
-## Get resources requests and limits per container in a Kubernetes cluster.
+## Get all pods with restarting containers and sum the values
 
-OUT=resources.csv
+OUT=restarting.csv
 NAMESPACE=--all-namespaces
 QUITE=false
 HEADERS=true
@@ -75,39 +75,33 @@ testConnection () {
     kubectl cluster-info > /dev/null || errorExit "Connection to cluster failed"
 }
 
-formatCpu () {
-    local result=$1
-    if [[ ${result} =~ m$ ]]; then
-        result=$(echo "${result}" | tr -d 'm')
-        result=$(awk "BEGIN {print ${result}/1000}")
-    fi
+addValues () {
+    values_str=$1
 
-    echo -n "${result}"
+    [ -z "${values_str}" ] && echo -n 0
+
+    values_sum=0
+    OLD_IFS=${IFS}
+    IFS=' '
+    for v in ${values_str}; do
+        values_sum=$(( values_sum + v ))
+    done
+    IFS=${OLD_IFS}
+
+    echo -n ${values_sum}
 }
 
-formatMemory () {
-    local result=$1
-    if [[ ${result} =~ M ]]; then
-        result=$(echo "${result}" | tr -d 'Mi')
-        result=$(awk "BEGIN {print ${result}/1000}")
-    elif [[ ${result} =~ G ]]; then
-        result=$(echo "${result}" | tr -d 'Gi')
-    fi
-
-    echo -n "${result}"
-}
-
-getRequestsAndLimits () {
+getRestartingPods () {
     local data=
 
-    data=$(kubectl get pods ${NAMESPACE} -o json | jq -r '.items[] | .metadata.namespace + "," + .metadata.name + "," + (.spec.containers[] | .name + "," + .resources.requests.cpu + "," + .resources.requests.memory + "," + .resources.limits.cpu + "," + .resources.limits.memory)')
+    data=$(kubectl get pod ${NAMESPACE} -o=jsonpath='{range .items[*]}{.metadata.namespace},{.metadata.name},{.status.containerStatuses[*].restartCount}{"\n"}')
 
     # Backup OUT file if already exists
     [ -f "${OUT}" ] && cp -f "${OUT}" "${OUT}.$(date +"%Y-%m-%d_%H:%M:%S")"
 
     # Prepare header for output CSV
     if [ "${HEADERS}" == true ]; then
-        echo "Namespace,Pod,Container,CPU request,Memory request,CPU limit,Memory limit" > "${OUT}"
+        echo "Namespace,Pod,Total restarts" > "${OUT}"
     else
         echo -n "" > "${OUT}"
     fi
@@ -116,19 +110,25 @@ getRequestsAndLimits () {
     IFS=$'\n'
     for l in ${data}; do
 #        echo "Line: $l"
+
         namespace=$(echo "${l}" | awk -F, '{print $1}')
         pod=$(echo "${l}" | awk -F, '{print $2}')
-        container=$(echo "${l}" | awk -F, '{print $3}')
-        cpu_request=$(formatCpu "$(echo "${l}" | awk -F, '{print $4}')")
-        mem_request=$(formatMemory "$(echo "${l}" | awk -F, '{print $5}')")
-        cpu_limit=$(formatCpu "$(echo "${l}" | awk -F, '{print $6}')")
-        mem_limit=$(formatMemory "$(echo "${l}" | awk -F, '{print $7}')")
+        restarts=$(echo "${l}" | awk -F, '{print $3}')
 
-        final_line=${namespace},${pod},${container},${cpu_request},${mem_request},${cpu_limit},${mem_limit}
-        if [ "${QUITE}" == true ]; then
-            echo "${final_line}" >> "${OUT}"
-        else
-            echo "${final_line}" | tee -a "${OUT}"
+        # Add restarts only if values exist
+        if [ -n "${restarts}" ]; then
+            # Go over container restart and add them up
+            restart_sum=$(addValues "${restarts}")
+#            echo "Sum: $restart_sum"
+
+            if [ $restart_sum -gt 0 ]; then
+                final_line=${namespace},${pod},${restart_sum}
+                if [ "${QUITE}" == true ]; then
+                    echo "${final_line}" >> "${OUT}"
+                else
+                    echo "${final_line}" | tee -a "${OUT}"
+                fi
+            fi
         fi
     done
     IFS=${OLD_IFS}
@@ -136,9 +136,9 @@ getRequestsAndLimits () {
 
 main () {
     processOptions $*
-    [ "${QUITE}" == true ] || echo "Getting current Kubernetes cluster resource requests and limits"
+    [ "${QUITE}" == true ] || echo "Getting Kubernetes cluster pods restarts"
     testConnection
-    getRequestsAndLimits
+    getRestartingPods
 }
 
 ######### Main #########
