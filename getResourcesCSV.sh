@@ -90,6 +90,9 @@ formatMemory () {
     if [[ ${result} =~ M ]]; then
         result=$(echo "${result}" | tr -d 'Mi')
         result=$(awk "BEGIN {print ${result}/1000}")
+    elif [[ ${result} =~ m ]]; then
+        result=$(echo "${result}" | tr -d 'm')
+        result=$(awk "BEGIN {print ${result}/1000000000000}")
     elif [[ ${result} =~ G ]]; then
         result=$(echo "${result}" | tr -d 'Gi')
     fi
