@@ -88,6 +88,9 @@ kubectl run my-ubuntu --rm -i -t --image ubuntu -- bash
 
 # CentOS
 kubectl run my-centos --rm -i -t --image centos:8 -- bash
+
+# Alpine
+kubectl run my-alpine --rm -i -t --image alpine:3.10 -- sh
 ```
 
 * Start a single busybox pod running `sleep 3600`. Good for debugging
