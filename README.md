@@ -105,6 +105,11 @@ kubectl get pod --all-namespaces \
     -o=jsonpath='{range .items[*]}{.metadata.namespace}, {.metadata.name}, {.spec.containers[].image}{"\n"}'
 ```
 
+* Get per node resources requests and limits
+```shell script
+for n in $(kubectl get no --no-headers | awk '{print $1}'); do echo -e "\n-- ${n} --"; k describe no $n | grep -A 3 "Resource .*Requests .*Limits"; done
+```
+
 ### Helm
 **NOTE:** It is recommended to move to [Helm v3](https://helm.sh/docs/), which does not use tiller anymore.
 
