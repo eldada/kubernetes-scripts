@@ -81,25 +81,19 @@ kubefwd svc -n namespace1
 kubectl get secret -n namespace1 my-postgresql -o jsonpath="{.data.postgres-password}" | base64 --decode
 ```
 
-* Start a bash shell in a pod (will terminate once exited)
+* Start a shell in a temporary pod (will terminate once exited)
 ```shell script
 # Ubuntu
-kubectl run my-ubuntu --rm -i -t --image ubuntu -- bash
+kubectl run --generator=run-pod/v1 my-ubuntu --rm -i -t --image ubuntu -- bash
 
 # CentOS
-kubectl run my-centos --rm -i -t --image centos:8 -- bash
+kubectl run --generator=run-pod/v1 my-centos --rm -i -t --image centos:8 -- bash
 
 # Alpine
-kubectl run my-alpine --rm -i -t --image alpine:3.10 -- sh
-```
+kubectl run --generator=run-pod/v1 my-alpine --rm -i -t --image alpine:3.10 -- sh
 
-* Start a single busybox pod running `sleep 3600`. Good for debugging
-```shell script
-# Deploy the pod
-kubectl apply -f https://k8s.io/examples/admin/dns/busybox.yaml
-
-# Open shell into the pod (once running)
-kubectl exec -it busybox sh
+# Busybox
+kubectl run --generator=run-pod/v1 my-busybox --rm -i -t --image busybox -- sh
 ```
 
 * Get list of container images in pods. Useful for listing all running containers in your cluster.
