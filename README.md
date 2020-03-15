@@ -8,6 +8,7 @@ $ <script> --help
 ```
 
 ## Scripts
+* [findEmptyNamespaces.sh](findEmptyNamespaces.sh): Loop over all namespaces in a cluster and find empty ones.
 * [getPodsTopCSV.sh](getPodsTopCSV.sh): Get a pod's cpu and memory usage (optionally per container) written as CSV formatted file.
 * [getResourcesCSV.sh](getResourcesCSV.sh): Get all pods resources requests and limits per container in a CSV format with values normalized. 
 CSV format is very automation friendly and is great for pasting in an Excel or Google sheet for further processing.
@@ -69,13 +70,14 @@ kubectl port-forward -n namespace1 web 8080:8080
 kubectl port-forward -n namespace1 svc/web 8080:80
 ```
 
-* A great tool for port forwarding all services in a namespace + adding aliases to `/etc/hosts` is [kubefwd](https://github.com/txn2/kubefwd). Note that this requires root or sudo to allow editing of `/etc/host`.
+* A great tool for port forwarding all services in a namespace + adding aliases to `/etc/hosts` is [kubefwd](https://github.com/txn2/kubefwd).
+Note that this requires root or sudo to allow temporary editing of `/etc/host`.
 ```shell script
 # Port forward all service in namespace1
 kubefwd svc -n namespace1
 ```
 
-* Extract secret value
+* Extract and decode a secret's value
 ```shell script
 # Get the value of the postgresql password
 kubectl get secret -n namespace1 my-postgresql -o jsonpath="{.data.postgres-password}" | base64 --decode
@@ -96,7 +98,7 @@ kubectl run --generator=run-pod/v1 my-alpine --rm -i -t --image alpine:3.10 -- s
 kubectl run --generator=run-pod/v1 my-busybox --rm -i -t --image busybox -- sh
 ```
 
-* Get list of container images in pods. Useful for listing all running containers in your cluster.
+* Get list of container images in pods. Useful for listing all running containers in your cluster
 ```shell script
 kubectl get pod --all-namespaces \
     -o=jsonpath='{range .items[*]}{.metadata.namespace}, {.metadata.name}, {.spec.containers[].image}{"\n"}'
