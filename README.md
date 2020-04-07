@@ -109,6 +109,11 @@ kubectl get pod --all-namespaces \
 for n in $(kubectl get no --no-headers | awk '{print $1}'); do echo -e "\n-- ${n} --"; k describe no $n | grep -A 3 "Resource .*Requests .*Limits"; done
 ```
 
+* Get current replica count on all HPAs (Horizontal Pod Autoscaler)
+```shell script
+kubectl get hpa --all-namespaces -o=custom-columns=NAME:.metadata.name,REPLICAS:.status.currentReplicas | sort -k2 -n -r
+```
+
 ### Helm
 **NOTE:** It is recommended to move to [Helm v3](https://helm.sh/docs/), which does not use tiller anymore.
 
