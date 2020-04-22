@@ -46,11 +46,7 @@ done
 
 * See all cluster nodes CPU and Memory requests and limits
 ```shell script
-# Option 1
-kubectl describe nodes | grep -A 2 -e "^\\s*CPU Requests"
-
-# Option 2 (condensed)
-kubectl describe nodes | grep -A 2 -e "^\\s*CPU Requests" | grep -e "%"
+kubectl describe nodes | grep -A 3 "Resource .*Requests .*Limits"; done
 ``` 
 
 * Get all labels attached to all pods in a namespace
@@ -102,11 +98,6 @@ kubectl run --generator=run-pod/v1 my-busybox --rm -i -t --image busybox -- sh
 ```shell script
 kubectl get pod --all-namespaces \
     -o=jsonpath='{range .items[*]}{.metadata.namespace}, {.metadata.name}, {.spec.containers[].image}{"\n"}'
-```
-
-* Get per node resources requests and limits
-```shell script
-for n in $(kubectl get no --no-headers | awk '{print $1}'); do echo -e "\n-- ${n} --"; k describe no $n | grep -A 3 "Resource .*Requests .*Limits"; done
 ```
 
 * Get current replica count on all HPAs (Horizontal Pod Autoscaler)
