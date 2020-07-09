@@ -187,7 +187,7 @@ getPodsTop () {
 }
 
 main () {
-    processOptions $*
+    processOptions "$@"
     [ "${QUITE}" == true ] || echo "Getting Pod memory and cpu usage"
     testConnection
     getPodsTop
@@ -195,4 +195,4 @@ main () {
 
 ######### Main #########
 
-main $*
+main "$@"

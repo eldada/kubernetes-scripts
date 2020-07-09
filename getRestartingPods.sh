@@ -135,7 +135,7 @@ getRestartingPods () {
 }
 
 main () {
-    processOptions $*
+    processOptions "$@"
     [ "${QUITE}" == true ] || echo "Getting Kubernetes cluster pods restarts"
     testConnection
     getRestartingPods
@@ -143,4 +143,4 @@ main () {
 
 ######### Main #########
 
-main $*
+main "$@"

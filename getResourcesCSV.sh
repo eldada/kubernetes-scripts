@@ -138,12 +138,12 @@ getRequestsAndLimits () {
 }
 
 main () {
-    processOptions $*
-    [ "${QUITE}" == true ] || echo "Getting current Kubernetes cluster resource requests and limits"
+    processOptions "$@"
+    [ "${QUITE}" == true ] || echo "Getting pods resource requests and limits"
     testConnection
     getRequestsAndLimits
 }
 
 ######### Main #########
 
-main $*
+main "$@"
