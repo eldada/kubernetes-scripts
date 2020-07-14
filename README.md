@@ -79,6 +79,11 @@ kubefwd svc -n namespace1
 kubectl get secret -n namespace1 my-postgresql -o jsonpath="{.data.postgres-password}" | base64 --decode
 ```
 
+* Copy secret from `namespace1` to `namespace2`
+```shell script
+kubectl get secret my-secret --namespace namespace1 -o yaml | sed "/namespace:/d" | kubectl apply --namespace=namespace2 -f -
+```
+
 * Start a shell in a temporary pod (will terminate once exited)
 ```shell script
 # Ubuntu
