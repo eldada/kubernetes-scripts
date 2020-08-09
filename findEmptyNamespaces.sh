@@ -3,8 +3,8 @@
 # Go over all namespaces in a cluster and check if they are empty of workloads and controller objects
 
 OBJECTS=pods,jobs,cronjobs,deployments,daemonsets,statefulsets
-NS_ALL=ns-all.txt
-NS_WL=ns-wl.txt
+NS_ALL=namespaces-all.txt
+NS_WL=namespaces-with-workloads.txt
 
 # Get list of all namespaces
 kubectl get ns --no-headers -o=custom-columns=NAME:.metadata.name > ${NS_ALL}
