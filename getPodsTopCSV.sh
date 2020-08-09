@@ -2,7 +2,7 @@
 
 ## Get formatted results of kubectl top pod --containers
 
-OUT=top.csv
+OUT=top-$(date +"%Y-%m-%d_%H:%M:%S").csv
 NAMESPACE=--all-namespaces
 QUITE=false
 HEADERS=true
