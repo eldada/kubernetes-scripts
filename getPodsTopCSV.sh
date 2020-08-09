@@ -30,7 +30,7 @@ Usage: ${SCRIPT_NAME} <options>
 -p | --pod <name>                      : Pod to analyse.
 -d | --duration <seconds>              : Duration of sampling.      Default: ${DURATION} (infinite)
 -i | --interval <seconds>              : Interval between samples.  Default: ${INTERVAL}
--o | --output <name>                   : Output file.               Default: ${OUT}
+-o | --output <name>                   : Output file.               Default: top-<timestamp>.csv
 -c | --containers                      : Output per container.      Default: off
 -q | --quite                           : Don't output to screen.    Default: Output to screen
 -h | --help                            : Show this usage
