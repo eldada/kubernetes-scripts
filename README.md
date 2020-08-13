@@ -85,7 +85,8 @@ kubectl get secret -n namespace1 my-postgresql -o jsonpath="{.data.postgres-pass
 kubectl get secret my-secret --namespace namespace1 -o yaml | sed "/namespace:/d" | kubectl apply --namespace=namespace2 -f -
 ```
 
-#### Start a shell in a temporary pod (will terminate once exited)
+#### Start a shell in a temporary pod
+Note - Pod will terminate once exited
 ```shell script
 # Ubuntu
 kubectl run --generator=run-pod/v1 my-ubuntu --rm -i -t --image ubuntu -- bash
