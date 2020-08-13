@@ -89,16 +89,16 @@ kubectl get secret my-secret --namespace namespace1 -o yaml | sed "/namespace:/d
 Note - Pod will terminate once exited
 ```shell script
 # Ubuntu
-kubectl run --generator=run-pod/v1 my-ubuntu --rm -i -t --image ubuntu -- bash
+kubectl run my-ubuntu --rm -i -t --restart=Never --image ubuntu -- bash
 
 # CentOS
-kubectl run --generator=run-pod/v1 my-centos --rm -i -t --image centos:8 -- bash
+kubectl run my-centos --rm -i -t --restart=Never --image centos:8 -- bash
 
 # Alpine
-kubectl run --generator=run-pod/v1 my-alpine --rm -i -t --image alpine:3.10 -- sh
+kubectl run my-alpine --rm -i -t --restart=Never --image alpine:3.10 -- sh
 
 # Busybox
-kubectl run --generator=run-pod/v1 my-busybox --rm -i -t --image busybox -- sh
+kubectl run my-busybox --rm -i -t --restart=Never --image busybox -- sh
 ```
 
 #### Get formatted list of container images in pods
