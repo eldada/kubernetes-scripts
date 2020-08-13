@@ -101,7 +101,8 @@ kubectl run --generator=run-pod/v1 my-alpine --rm -i -t --image alpine:3.10 -- s
 kubectl run --generator=run-pod/v1 my-busybox --rm -i -t --image busybox -- sh
 ```
 
-#### Get formatted list of container images in pods. Useful for listing all running containers in your cluster
+#### Get formatted list of container images in pods
+Useful for listing all running containers in your cluster
 ```shell script
 kubectl get pod --all-namespaces \
     -o=jsonpath='{range .items[*]}{.metadata.namespace}, {.metadata.name}, {.spec.containers[].image}{"\n"}'
