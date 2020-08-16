@@ -85,6 +85,32 @@ kubectl get secret -n namespace1 my-postgresql -o jsonpath="{.data.postgres-pass
 kubectl get secret my-secret --namespace namespace1 -o yaml | sed "/namespace:/d" | kubectl apply --namespace=namespace2 -f -
 ```
 
+#### Create an Ubuntu pod
+A one liner to create an Ubuntu pod that will just wait forever. 
+```shell script
+# Create the pod
+cat <<ZZZ | kubectl apply -f -
+apiVersion: v1
+kind: Pod
+metadata:
+  name: my-ubuntu-pod
+spec:
+  containers:
+  - name: my-ubuntu-container
+    image: ubuntu:20.04
+    command:
+    - 'bash'
+    - '-c'
+    - 'while true; do sleep 5; done'
+ZZZ
+
+# Shell into the pod
+kubectl exec -it my-ubuntu-pod bash
+
+# Delete the pods once done
+kubectl delete pod my-ubuntu-pod
+```
+
 #### Start a shell in a temporary pod
 Note - Pod will terminate once exited
 ```shell script
