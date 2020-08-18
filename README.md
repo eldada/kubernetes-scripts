@@ -130,16 +130,30 @@ kubectl run my-busybox --rm -i -t --restart=Never --image busybox -- sh
 #### Get formatted list of container images in pods
 Useful for listing all running containers in your cluster
 ```shell script
-kubectl get pod --all-namespaces \
+kubectl get pod -A \
     -o=jsonpath='{range .items[*]}{.metadata.namespace}, {.metadata.name}, {.spec.containers[].image}{"\n"}'
 ```
 Look into [a few more examples](https://kubernetes.io/docs/tasks/access-application-cluster/list-all-running-container-images) of listing containers
 
 #### Get current replica count on all HPAs (Horizontal Pod Autoscaler)
 ```shell script
-kubectl get hpa --all-namespaces -o=custom-columns=NAME:.metadata.name,REPLICAS:.status.currentReplicas | sort -k2 -n -r
+kubectl get hpa -A -o=custom-columns=NAME:.metadata.name,REPLICAS:.status.currentReplicas | sort -k2 -n -r
 ```
 
+#### List non-running pods
+```shell script
+kubectl get pods -A --field-selector=status.phase!=Running | grep -v Complete
+```
+
+#### Top Pods CPU or memory usage
+```shell script
+# Top 20 pods by highest CPU usage
+kubectl top pods -A | sort --reverse --key 3 --numeric | head -20
+
+# Top 20 pods by highest memory usage
+kubectl top pods -A | sort --reverse --key 4 --numeric | head -20
+```
+ 
 ### Helm
 **NOTE:** It is recommended to move to [Helm v3](https://helm.sh/docs/), which does not use tiller anymore.
 
@@ -176,3 +190,8 @@ kubectl -n <namespace> rollout restart daemonset <daemonset-name>
 # StatefulSet
 kubectl -n <namespace> rollout restart statefulsets <statefulset-name>
 ```
+
+### Resources
+Most of the code above is self experimenting and reading the docs. Some are copied and modified to my needs from other resources...
+* https://kubernetes.io/docs/reference/kubectl/cheatsheet/
+* https://medium.com/flant-com/kubectl-commands-and-tips-7b33de0c5476
