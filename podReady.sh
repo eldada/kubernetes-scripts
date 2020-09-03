@@ -2,7 +2,7 @@
 
 ## Simple script to check if pod is really ready.
 # Check status is 'Running' and that all containers are ready.
-# Return 1 is not ready. Return 0 is ready.
+# Return 1 if not ready. Return 0 if ready.
 
 # pod is the pod name
 pod=$1
@@ -18,12 +18,13 @@ result=1
 # Get the pod record from 'kubectl get pods'
 p=$(kubectl get pods -n ${ns} | grep "${pod}")
 
-if [ ! -z "${p}" ]; then
-    pod_name=$(echo -n ${p} | awk '{print $1}')
-    ready=$(echo -n ${p} | awk '{print $2}')
-    ready_actual=$(echo -n ${ready} | awk -F/ '{print $1}')
-    ready_max=$(echo -n ${ready} | awk -F/ '{print $2}')
-    status=$(echo -n ${p} | awk '{print $3}')
+if [ -n "${p}" ]; then
+    ## Uncomment to see output later down the script
+    # pod_name=$(echo -n "${p}" | awk '{print $1}')
+    ready=$(echo -n "${p}" | awk '{print $2}')
+    ready_actual=$(echo -n "${ready}" | awk -F/ '{print $1}')
+    ready_max=$(echo -n "${ready}" | awk -F/ '{print $2}')
+    status=$(echo -n "${p}" | awk '{print $3}')
 
     ## Uncomment to see output
     # echo "... pod ${pod_name}; ready is ${ready}; ready_actual is ${ready_actual}; ready_max is ${ready_max}; status is ${status}"

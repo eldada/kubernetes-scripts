@@ -76,11 +76,11 @@ testConnection () {
 }
 
 addValues () {
-    values_str=$1
+    local values_str=$1
 
     [ -z "${values_str}" ] && echo -n 0
 
-    values_sum=0
+    local values_sum=0
     OLD_IFS=${IFS}
     IFS=' '
     for v in ${values_str}; do
@@ -93,8 +93,12 @@ addValues () {
 
 getRestartingPods () {
     local data=
+    local namespace=
+    local pod=
+    local restarts=
+    local restart_sum=
 
-    data=$(kubectl get pod ${NAMESPACE} -o=jsonpath='{range .items[*]}{.metadata.namespace},{.metadata.name},{.status.containerStatuses[*].restartCount}{"\n"}')
+    data=$(kubectl get pod "${NAMESPACE}" -o=jsonpath='{range .items[*]}{.metadata.namespace},{.metadata.name},{.status.containerStatuses[*].restartCount}{"\n"}')
 
     # Backup OUT file if already exists
     [ -f "${OUT}" ] && cp -f "${OUT}" "${OUT}.$(date +"%Y-%m-%d_%H:%M:%S")"
@@ -121,8 +125,8 @@ getRestartingPods () {
             restart_sum=$(addValues "${restarts}")
 #            echo "Sum: $restart_sum"
 
-            if [ $restart_sum -gt 0 ]; then
-                final_line=${namespace},${pod},${restart_sum}
+            if [ "${restart_sum}" -gt 0 ]; then
+                local final_line=${namespace},${pod},${restart_sum}
                 if [ "${QUITE}" == true ]; then
                     echo "${final_line}" >> "${OUT}"
                 else

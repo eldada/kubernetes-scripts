@@ -98,7 +98,7 @@ processOptions () {
 # Test connection to a cluster by kubectl
 testConnection () {
     kubectl cluster-info > /dev/null || errorExit "Connection to cluster failed"
-    kubectl get pod ${NAMESPACE} ${POD} > /dev/null || errorExit "Pod ${POD} not found in namespace ${NAMESPACE}"
+    kubectl get pod "${NAMESPACE}" "${POD}" > /dev/null || errorExit "Pod ${POD} not found in namespace ${NAMESPACE}"
 }
 
 formatCpu () {
@@ -130,22 +130,25 @@ getPodsTop () {
     local condition=true
     local counter=0
     local line=
+    local time_stamp=
+    local cpu=
+    local memory=
 
     if [ "${DURATION}" != 0 ]; then
         condition="[]"
     fi
 
     while ${condition}; do
-        line=$(kubectl top pod ${NAMESPACE} ${POD} --no-headers ${CONTAINERS})
+        line=$(kubectl top pod "${NAMESPACE}" "${POD}" --no-headers ${CONTAINERS})
 #        echo "--- $line"
-        final_line=
+        local final_line=
 
         # Go over all the containers
-        OLD_IFS=${IFS}
+        local OLD_IFS=${IFS}
         IFS=$'\n'
         for l in ${line}; do
-            container=""
-            header="Timestamp,Pod,CPU (cores),Memory (GB)"
+            local container=""
+            local header="Timestamp,Pod,CPU (cores),Memory (GB)"
             time_stamp=$(date +"%Y-%m-%d_%H:%M:%S")
             if [ -n "${CONTAINERS}" ]; then
                 container=$(echo "${l}" | awk '{print $2}')
@@ -156,7 +159,7 @@ getPodsTop () {
                 cpu=$(formatCpu "$(echo "${l}" | awk '{print $2}')")
                 memory=$(formatMemory "$(echo "${l}" | awk '{print $3}')")
             fi
-            out_file=${OUT}
+            local out_file=${OUT}
 
             # Print header in each file if this is the first line
             if [ ${counter} -eq 0 ]; then
@@ -180,7 +183,7 @@ getPodsTop () {
         done
         IFS=${OLD_IFS}
 
-        sleep ${INTERVAL}
+        sleep "${INTERVAL}"
 
         (( counter++ ))
     done

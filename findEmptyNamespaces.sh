@@ -2,7 +2,7 @@
 
 # Go over all namespaces in a cluster and check if they are empty of workloads and controller objects
 
-# All workload oobjects to search for
+# All workload objects to search for
 OBJECTS=pods,jobs,cronjobs,deployments,daemonsets,statefulsets
 
 # Temp files for the grep later on

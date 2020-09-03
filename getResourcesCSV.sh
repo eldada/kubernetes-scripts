@@ -102,8 +102,16 @@ formatMemory () {
 
 getRequestsAndLimits () {
     local data=
+    local namespace=
+    local pod=
+    local container=
+    local cpu_request=
+    local mem_request=
+    local cpu_limit=
+    local mem_limit=
+    local final_line=
 
-    data=$(kubectl get pods ${NAMESPACE} -o json | jq -r '.items[] | .metadata.namespace + "," + .metadata.name + "," + (.spec.containers[] | .name + "," + .resources.requests.cpu + "," + .resources.requests.memory + "," + .resources.limits.cpu + "," + .resources.limits.memory)')
+    data=$(kubectl get pods "${NAMESPACE}" -o json | jq -r '.items[] | .metadata.namespace + "," + .metadata.name + "," + (.spec.containers[] | .name + "," + .resources.requests.cpu + "," + .resources.requests.memory + "," + .resources.limits.cpu + "," + .resources.limits.memory)')
 
     # Backup OUT file if already exists
     [ -f "${OUT}" ] && cp -f "${OUT}" "${OUT}.$(date +"%Y-%m-%d_%H:%M:%S")"
@@ -115,7 +123,7 @@ getRequestsAndLimits () {
         echo -n "" > "${OUT}"
     fi
 
-    OLD_IFS=${IFS}
+    local OLD_IFS=${IFS}
     IFS=$'\n'
     for l in ${data}; do
 #        echo "Line: $l"
