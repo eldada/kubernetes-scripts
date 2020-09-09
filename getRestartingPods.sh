@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# UNCOMMENT this line to enable debugging
+# set -xv
+
 ## Get all pods with restarting containers and sum the values
 
 OUT=restarting.csv
@@ -44,7 +47,7 @@ processOptions () {
     while [[ $# -gt 0 ]]; do
         case "$1" in
             -n | --namespace)
-                NAMESPACE="-n $2"
+                NAMESPACE="--namespace $2"
                 shift 2
             ;;
             -o | --output)
@@ -98,7 +101,7 @@ getRestartingPods () {
     local restarts=
     local restart_sum=
 
-    data=$(kubectl get pod "${NAMESPACE}" -o=jsonpath='{range .items[*]}{.metadata.namespace},{.metadata.name},{.status.containerStatuses[*].restartCount}{"\n"}')
+    data=$(kubectl get pod ${NAMESPACE} -o=jsonpath='{range .items[*]}{.metadata.namespace},{.metadata.name},{.status.containerStatuses[*].restartCount}{"\n"}')
 
     # Backup OUT file if already exists
     [ -f "${OUT}" ] && cp -f "${OUT}" "${OUT}.$(date +"%Y-%m-%d_%H:%M:%S")"

@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# UNCOMMENT this line to enable debugging
+# set -xv
+
 ## Simple script to check if pod is really ready.
 # Check status is 'Running' and that all containers are ready.
 # Return 1 if not ready. Return 0 if ready.
@@ -16,7 +19,7 @@ ns=$2
 result=1
 
 # Get the pod record from 'kubectl get pods'
-p=$(kubectl get pods -n ${ns} | grep "${pod}")
+p=$(kubectl get pods --namespace ${ns} | grep "${pod}")
 
 if [ -n "${p}" ]; then
     ## Uncomment to see output later down the script

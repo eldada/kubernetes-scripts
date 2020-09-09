@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# UNCOMMENT this line to enable debugging
+# set -xv
+
 ## Get formatted results of kubectl top pod --containers
 
 OUT=top-$(date +"%Y-%m-%d_%H:%M:%S").csv
@@ -51,7 +54,7 @@ processOptions () {
     while [[ $# -gt 0 ]]; do
         case "$1" in
             -n | --namespace)
-                NAMESPACE="-n $2"
+                NAMESPACE="--namespace $2"
                 shift 2
             ;;
             -p | --pod)
@@ -98,7 +101,7 @@ processOptions () {
 # Test connection to a cluster by kubectl
 testConnection () {
     kubectl cluster-info > /dev/null || errorExit "Connection to cluster failed"
-    kubectl get pod "${NAMESPACE}" "${POD}" > /dev/null || errorExit "Pod ${POD} not found in namespace ${NAMESPACE}"
+    kubectl get pod ${NAMESPACE} "${POD}" > /dev/null || errorExit "Pod ${POD} not found in namespace ${NAMESPACE}"
 }
 
 formatCpu () {
@@ -139,7 +142,7 @@ getPodsTop () {
     fi
 
     while ${condition}; do
-        line=$(kubectl top pod "${NAMESPACE}" "${POD}" --no-headers ${CONTAINERS})
+        line=$(kubectl top pod ${NAMESPACE} "${POD}" --no-headers ${CONTAINERS})
 #        echo "--- $line"
         local final_line=
 
