@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# UNCOMMENT this line to enable debugging
+# set -xv
+
 ## Get resources requests and limits per container in a Kubernetes cluster.
 
 OUT=resources.csv
@@ -44,7 +47,7 @@ processOptions () {
     while [[ $# -gt 0 ]]; do
         case "$1" in
             -n | --namespace)
-                NAMESPACE="-n $2"
+                NAMESPACE="--namespace $2"
                 shift 2
             ;;
             -o | --output)
@@ -111,7 +114,7 @@ getRequestsAndLimits () {
     local mem_limit=
     local final_line=
 
-    data=$(kubectl get pods "${NAMESPACE}" -o json | jq -r '.items[] | .metadata.namespace + "," + .metadata.name + "," + (.spec.containers[] | .name + "," + .resources.requests.cpu + "," + .resources.requests.memory + "," + .resources.limits.cpu + "," + .resources.limits.memory)')
+    data=$(kubectl get pods ${NAMESPACE} -o json | jq -r '.items[] | .metadata.namespace + "," + .metadata.name + "," + (.spec.containers[] | .name + "," + .resources.requests.cpu + "," + .resources.requests.memory + "," + .resources.limits.cpu + "," + .resources.limits.memory)')
 
     # Backup OUT file if already exists
     [ -f "${OUT}" ] && cp -f "${OUT}" "${OUT}.$(date +"%Y-%m-%d_%H:%M:%S")"
