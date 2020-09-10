@@ -16,6 +16,9 @@ CSV format is very automation friendly and is great for pasting in an Excel or G
 * [podReady](podReady.sh): Simple script to check if pod is really ready. Check status is 'Running' and that all containers are ready.
 Returns 0 if ready. Returns 1 if not ready.
 
+## YAML
+* [podWithHostFS.yaml](yaml/podWithHostFS.yaml): A pod with host root file system mounted into it. **WARNING:** There is danget of corrupting your Kubernetes host. Use with extra care!
+
 ## One liners
 ### Kubectl
 #### See all custer nodes load (top)
