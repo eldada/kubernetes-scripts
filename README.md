@@ -17,7 +17,8 @@ CSV format is very automation friendly and is great for pasting in an Excel or G
 Returns 0 if ready. Returns 1 if not ready.
 
 ## YAML
-* [podWithHostFS.yaml](yaml/podWithHostFS.yaml): A pod with host root file system mounted into it. **WARNING:** There is danget of corrupting your Kubernetes host. Use with extra care!
+* [podWithHostFS.yaml](yaml/podWithHostFS.yaml): A pod with host root file system mounted into it.<br>
+  **WARNING:** There is danger of corrupting your Kubernetes host. Use with extra care!
 
 ## One liners
 ### Kubectl
