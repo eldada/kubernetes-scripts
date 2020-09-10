@@ -1,0 +1,81 @@
+###########################################################
+## This file has the configuration for
+## - A namespace called 0-danger-zone (for easy sort and context)
+## - A hostPath PersistentVolume
+## - A PersistentVolumeClaim to use the PersistentVolume
+## - A pod with host root file system mounted to /mnt/hostfs
+##
+## This is useful for exploring the host file system for various
+## debugging scenarios like examining the kubelet configuration.
+## USE WITH CAUTION! Changes here can break your node!
+##
+## Deploy: kubectl apply -f podWithHostFS.yaml
+## Terminal access: kubectl exec -n 0-danger-zone -it pod-with-host-fs -- bash
+## Remove: kubectl delete -f podWithHostFS.yaml
+###########################################################
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: 0-danger-zone
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-with-host-fs
+  namespace: 0-danger-zone
+spec:
+  containers:
+    - name: container-with-host-fs
+      image: ubuntu:20.04
+      command:
+        - 'bash'
+        - '-c'
+        - >
+          echo "############# Setting up some tools...";
+          apt update && apt install vim curl -y;
+          echo -e "\n\n############# Get scripts...";
+          cd /opt;
+          curl -# -O https://raw.githubusercontent.com/eldada/command-examples/master/scripts/top.sh;
+          curl -# -O https://raw.githubusercontent.com/eldada/command-examples/master/scripts/procInfo.sh;
+          chmod +x *.sh;
+          ls -la;
+          echo -e "\n\n############# Going to sleep for 30 days...";
+          sleep 30d
+      securityContext:
+        privileged: true
+      volumeMounts:
+        - mountPath: /mnt/hostfs
+          name: hostpath-privileged
+  securityContext: {}
+  volumes:
+    - name: hostpath-privileged
+      persistentVolumeClaim:
+        claimName: host-pvc-volume
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: host-pv-volume
+  labels:
+    type: local
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: host-pvc-volume
+  namespace: 0-danger-zone
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: manual
