@@ -50,7 +50,7 @@ done
 
 #### See all cluster nodes CPU and Memory requests and limits
 ```shell script
-kubectl describe nodes | grep -A 3 "Resource .*Requests .*Limits"
+kubectl describe nodes | grep -A 3 "Name:\|Resource .*Requests .*Limits" | grep -v "Roles:"
 ``` 
 
 #### Get all labels attached to all pods in a namespace
