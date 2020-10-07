@@ -139,10 +139,15 @@ kubectl get pod -A -o=jsonpath='{range .items[*]}{.metadata.namespace},{.metadat
 Look into [a few more examples](https://kubernetes.io/docs/tasks/access-application-cluster/list-all-running-container-images) of listing containers
 
 #### Get list of pods sorted by restart count
+* Option 1 for all pods (Taken from [kubectl cheatsheet](https://kubernetes.io/docs/reference/kubectl/cheatsheet/#viewing-finding-resources))
 ```shell script
-kubectl get pods --sort-by='.status.containerStatuses[0].restartCount'
+kubectl get pods -A --sort-by='.status.containerStatuses[0].restartCount'
 ```
-Taken from [kubectl cheatsheet](https://kubernetes.io/docs/reference/kubectl/cheatsheet/#viewing-finding-resources)
+
+* Option 2 with a filter and a CSV friendly output
+```shell script
+kubectl get pods -A | grep my-app | awk '{print $5 ", " $1 ", " $6}'  | sort -n -r
+```
 
 #### Get current replica count on all HPAs (Horizontal Pod Autoscaler)
 ```shell script
