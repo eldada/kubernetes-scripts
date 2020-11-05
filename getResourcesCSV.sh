@@ -9,6 +9,7 @@ OUT=resources.csv
 NAMESPACE=--all-namespaces
 QUITE=false
 HEADERS=true
+CONSOLE_ONLY=false
 SCRIPT_NAME=$0
 
 ######### Functions #########
@@ -27,9 +28,10 @@ Usage: ${SCRIPT_NAME} <options>
 
 -n | --namespace <name>                : Namespace to analyse.    Default: --all-namespaces
 -o | --output <name>                   : Output file.             Default: ${OUT}
--q | --quite                           : Don't output to screen.  Default: Output to screen
+-q | --quite                           : Don't output to stdout.  Default: Output to stdout
 -h | --help                            : Show this usage
 --no-headers                           : Don't print headers line
+--console-only                         : Output to stdout only (don't write to file)
 
 Examples:
 ========
@@ -60,6 +62,11 @@ processOptions () {
             ;;
             --no-headers)
                 HEADERS=false
+                shift 1
+            ;;
+            --console-only)
+                CONSOLE_ONLY=true
+                OUT=/dev/stdout
                 shift 1
             ;;
             -h | --help)
@@ -117,7 +124,7 @@ getRequestsAndLimits () {
     data=$(kubectl get pods ${NAMESPACE} -o json | jq -r '.items[] | .metadata.namespace + "," + .metadata.name + "," + (.spec.containers[] | .name + "," + .resources.requests.cpu + "," + .resources.requests.memory + "," + .resources.limits.cpu + "," + .resources.limits.memory)')
 
     # Backup OUT file if already exists
-    [ -f "${OUT}" ] && cp -f "${OUT}" "${OUT}.$(date +"%Y-%m-%d_%H:%M:%S")"
+    [ -f "${OUT}" ] && [ "$CONSOLE_ONLY" == "false" ] && cp -f "${OUT}" "${OUT}.$(date +"%Y-%m-%d_%H:%M:%S")"
 
     # Prepare header for output CSV
     if [ "${HEADERS}" == true ]; then
@@ -129,7 +136,6 @@ getRequestsAndLimits () {
     local OLD_IFS=${IFS}
     IFS=$'\n'
     for l in ${data}; do
-#        echo "Line: $l"
         namespace=$(echo "${l}" | awk -F, '{print $1}')
         pod=$(echo "${l}" | awk -F, '{print $2}')
         container=$(echo "${l}" | awk -F, '{print $3}')
