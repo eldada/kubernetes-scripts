@@ -156,7 +156,7 @@ kubectl get hpa -A -o=custom-columns=NAME:.metadata.name,REPLICAS:.status.curren
 
 #### List non-running pods
 ```shell script
-kubectl get pods -A --field-selector=status.phase!=Running | grep -v Complete
+kubectl get pods -A | grep -v Running | grep -v Completed
 ```
 
 #### Top Pods CPU or memory usage
