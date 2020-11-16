@@ -66,7 +66,7 @@ processOptions () {
             ;;
             --console-only)
                 CONSOLE_ONLY=true
-                OUT=/dev/stdout
+                OUT=/dev/null
                 shift 1
             ;;
             -h | --help)
