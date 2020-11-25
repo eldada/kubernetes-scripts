@@ -197,7 +197,8 @@ helm install --debug --dry-run <chart>
 ```
 
 #### Rolling restart
-Roll a restart across all resources managed by a Deployment, DaemonSet or StatefulSet with **zero downtime**
+Roll a restart across all resources managed by a Deployment, DaemonSet or StatefulSet with **zero downtime**<br>
+**IMPORTANT**: For a Deployment or StatefulSet, a zero downtime is possible only if initial replica count is **higher than 1**!
 ```shell script
 # Deployment
 kubectl -n <namespace> rollout restart deployment <deployment-name>
