@@ -134,11 +134,11 @@ kubectl run my-busybox --rm -i -t --restart=Never --image busybox -- sh
 #### Get formatted list of container images in pods
 Useful for listing all running containers in your cluster
 ```shell script
-# Option 1 - just the image and tag
-kubectl get pods -A -o jsonpath='{..image}' | tr ' ' '\n'
+# Option 1 - just the container name
+kubectl get pods -A -o jsonpath='{..containers[*].name}' | tr -s ' ' '\n'
 
 # Option 2 - namespace, pod and container
-kubectl get pod -A -o=jsonpath='{range .items[*]}{.metadata.namespace},{.metadata.name},{.spec.containers[*].image}{"\n"}' | tr -s ' ' '\n'
+kubectl get pods -A -o=jsonpath='{range .items[*]}{.metadata.namespace},{.metadata.name},{.spec.containers[*].image}{"\n"}' | tr -s ' ' '\n'
 ```
 Look into [a few more examples](https://kubernetes.io/docs/tasks/access-application-cluster/list-all-running-container-images) of listing containers
 
