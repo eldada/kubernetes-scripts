@@ -167,7 +167,7 @@ kubectl get hpa -A -o=custom-columns=NAME:.metadata.name,REPLICAS:.status.curren
 kubectl get pods -A --no-headers | grep -v Running | grep -v Completed
 ```
 
-#### Top Pods CPU or memory usage
+#### Top Pods by CPU or memory usage
 ```shell script
 # Top 20 pods by highest CPU usage
 kubectl top pods -A --sort-by=cpu | head -20
