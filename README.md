@@ -170,10 +170,10 @@ kubectl get pods -A --no-headers | grep -v Running | grep -v Completed
 #### Top Pods CPU or memory usage
 ```shell script
 # Top 20 pods by highest CPU usage
-kubectl top pods -A | sort --reverse --key 3 --numeric | head -20
+kubectl top pods -A --sort-by=cpu | head -20
 
 # Top 20 pods by highest memory usage
-kubectl top pods -A | sort --reverse --key 4 --numeric | head -20
+kubectl top pods -A --sort-by=memory | head -20
 ```
  
 ### Helm
