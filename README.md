@@ -174,6 +174,9 @@ kubectl top pods -A --sort-by=cpu | head -20
 
 # Top 20 pods by highest memory usage
 kubectl top pods -A --sort-by=memory | head -20
+
+# Roll over all kubectl contexts and get top 20 CPU users
+for a in $(kubectl ctx); do echo -e "\n---$a"; kubectl ctx $a; kubectl top pods -A --sort-by=cpu | head -20; done
 ```
  
 ### Helm
