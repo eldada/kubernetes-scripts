@@ -152,12 +152,12 @@ Look into [a few more examples](https://kubernetes.io/docs/tasks/access-applicat
 kubectl get pods -A --sort-by='.status.containerStatuses[0].restartCount'
 ```
 
-* Option 2 with a filter and a CSV friendly output
+* Option 2 with a filter, and a CSV friendly output
 ```shell script
 kubectl get pods -A | grep my-app | awk '{print $5 ", " $1 ", " $6}'  | sort -n -r
 ```
 
-#### Get current replica count on all HPAs (Horizontal Pod Autoscaler)
+#### Get current replica count on all HPAs (Horizontal Pod Autoscaling)
 ```shell script
 kubectl get hpa -A -o=custom-columns=NAME:.metadata.name,REPLICAS:.status.currentReplicas | sort -k2 -n -r
 ```
