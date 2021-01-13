@@ -20,7 +20,7 @@ Returns 0 if ready. Returns 1 if not ready.
 * [podWithHostFS.yaml](yaml/podWithHostFS.yaml): A pod with host root file system mounted into it.<br>
   **WARNING:** There is danger of corrupting your Kubernetes host. Use with extra care!
 
-## One liners
+## Commands
 ### Kubectl
 #### See all custer nodes load (top)
 ```shell script
