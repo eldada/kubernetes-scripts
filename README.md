@@ -17,12 +17,12 @@ CSV format is very automation friendly and is great for pasting in an Excel or G
 Returns 0 if ready. Returns 1 if not ready.
 
 ## YAML
-* [podWithHostFS.yaml](yaml/podWithHostFS.yaml): A pod with host root file system mounted into it.<br>
+* [podWithHostFS.yaml](yaml/podWithHostFS.yaml): A pod with the host root file system mounted into it.<br>
   **WARNING:** There is danger of corrupting your Kubernetes host. Use with extra care!
 
 ## Commands
 ### Kubectl
-#### See all custer nodes load (top)
+#### See all cluster nodes load (top)
 ```shell script
 kubectl top nodes
 ```

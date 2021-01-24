@@ -51,6 +51,18 @@ spec:
     - name: hostpath-privileged
       persistentVolumeClaim:
         claimName: host-pvc-volume
+## Uncomment to apply node affinity when you need to force the pod to start on a given node
+## Replace NODE_HOST_NAME with the value of the label "kubernetes.io/hostname" on the node
+#  affinity:
+#    nodeAffinity:
+#      requiredDuringSchedulingIgnoredDuringExecution:
+#        nodeSelectorTerms:
+#          - matchExpressions:
+#              - key: kubernetes.io/hostname
+#                operator: In
+#                values:
+#                  - NODE_HOST_NAME
+
 ---
 apiVersion: v1
 kind: PersistentVolume
