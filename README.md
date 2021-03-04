@@ -13,8 +13,8 @@ $ <script> --help
 * [getResourcesCSV.sh](getResourcesCSV.sh): Get all pods resources requests and limits per container in a CSV format with values normalized. 
 CSV format is very automation friendly and is great for pasting in an Excel or Google sheet for further processing.
 * [getRestartingPods.sh](getRestartingPods.sh): Get all pods (all or single namespace) that have restarts detected in one or more containers. Formatted in CSV.
-* [podReady](podReady.sh): Simple script to check if pod is really ready. Check status is 'Running' and that all containers are ready.
-Returns 0 if ready. Returns 1 if not ready.
+* [podReady.sh](podReady.sh): Simple script to check if pod is really ready. Check status is 'Running' and that all containers are ready. Returns 0 if ready. Returns 1 if not ready.
+* [getNodesLoad.sh](getNodesLoad.sh): Script to traverse over the `kube-proxy` pods to get the nodes load average and number tof CPUs.
 
 ## YAML
 * [podWithHostFS.yaml](yaml/podWithHostFS.yaml): A pod with the host root file system mounted into it.<br>
