@@ -160,13 +160,9 @@ getRequestsAndLimits () {
             # local container=""
             local top_header="Timestamp,Pod,CPU (cores),Memory (GB)"
             time_stamp=$(date +"%Y-%m-%d_%H:%M:%S")
-            echo "${t}"
             if [ -n "${CONTAINERS}" ]; then
                 top_container=$(echo "${t}" | awk '{print $2}')
-                if [ "${top_container}" == "${container}" ]; then
-                     echo "TOP"
-                    echo "$pod ${top_container} = ${container}"
-                    echo "Top End"
+                if [ "${top_container}" == "${container}" ]; then                    
                     top_cpu=$(formatCpu "$(echo "${t}" | awk '{print $3}')")
                     top_memory=$(formatMemory "$(echo "${t}" | awk '{print $4}')")
                     top_header="Timestamp,Pod,Container,CPU (cores),Memory (GB)"
