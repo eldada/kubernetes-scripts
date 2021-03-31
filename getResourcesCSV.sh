@@ -28,6 +28,7 @@ Usage: ${SCRIPT_NAME} <options>
 
 -n | --namespace <name>                : Namespace to analyse.    Default: --all-namespaces
 -o | --output <name>                   : Output file.             Default: ${OUT}
+-c | --containers                      : Output per container.      Default: off
 -q | --quite                           : Don't output to stdout.  Default: Output to stdout
 -h | --help                            : Show this usage
 --no-headers                           : Don't print headers line
@@ -55,6 +56,10 @@ processOptions () {
             -o | --output)
                 OUT=$2
                 shift 2
+            ;;
+            -c | --containers)
+                CONTAINERS="--containers"
+                shift 1
             ;;
             -q | --quite)
                 QUITE=true
@@ -128,7 +133,7 @@ getRequestsAndLimits () {
 
     # Prepare header for output CSV
     if [ "${HEADERS}" == true ]; then
-        echo "Namespace,Pod,Container,CPU request,Memory request,CPU limit,Memory limit" > "${OUT}"
+        echo "Namespace,Pod,Container,CPU request,CPU Usage,Memory request,Memory Usage,CPU limit,Memory limit" > "${OUT}"
     else
         echo -n "" > "${OUT}"
     fi
@@ -143,8 +148,32 @@ getRequestsAndLimits () {
         mem_request=$(formatMemory "$(echo "${l}" | awk -F, '{print $5}')")
         cpu_limit=$(formatCpu "$(echo "${l}" | awk -F, '{print $6}')")
         mem_limit=$(formatMemory "$(echo "${l}" | awk -F, '{print $7}')")
-
-        final_line=${namespace},${pod},${container},${cpu_request},${mem_request},${cpu_limit},${mem_limit}
+        #adding top
+        # IFS=${OLD_IFS}        
+        line=$(kubectl top pod -n ${namespace} ${pod} --no-headers ${CONTAINERS})
+       
+        # IFS=$'\n'
+        local top_container="" 
+        local top_cpu="" 
+        local top_memory="" 
+        for t in ${line}; do
+            # local container=""
+            local top_header="Timestamp,Pod,CPU (cores),Memory (GB)"
+            time_stamp=$(date +"%Y-%m-%d_%H:%M:%S")
+            if [ -n "${CONTAINERS}" ]; then
+                top_container=$(echo "${t}" | awk '{print $2}')
+                if [ "${top_container}" == "${container}" ]; then                    
+                    top_cpu=$(formatCpu "$(echo "${t}" | awk '{print $3}')")
+                    top_memory=$(formatMemory "$(echo "${t}" | awk '{print $4}')")
+                    top_header="Timestamp,Pod,Container,CPU (cores),Memory (GB)"
+                fi
+            else
+                top_cpu=$(formatCpu "$(echo "${t}" | awk '{print $2}')")
+                top_memory=$(formatMemory "$(echo "${t}" | awk '{print $3}')")
+            fi
+        done
+        #ending top
+        final_line=${namespace},${pod},${container},${cpu_request},${top_cpu},${mem_request},${top_memory},${cpu_limit},${mem_limit}
         if [ "${QUITE}" == true ]; then
             echo "${final_line}" >> "${OUT}"
         else
