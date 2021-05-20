@@ -25,7 +25,7 @@ for p in $pods; do
     cpu=$(echo $line | awk '{print $4}')
     load_int=$(echo "$load1" | sed 's/\..*//g')
 
-    # If load > cpu, it should be marked as "High load"
+    # If load > number of cpu, it should be marked with YES as "High load"
     if [[ $load_int -gt $cpu ]]; then alert="YES"; fi
 
     echo "$node, $load1, $load5, $load15, $cpu, $alert"
