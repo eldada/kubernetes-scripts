@@ -140,7 +140,7 @@ Useful for listing all running containers in your cluster
 # Option 1 - just the container name
 kubectl get pods -A -o jsonpath='{..containers[*].name}' | tr -s ' ' '\n'
 
-# Option 2 - namespace, pod and container
+# Option 2 - namespace, pod container images and tags
 kubectl get pods -A -o=jsonpath='{range .items[*]}{.metadata.namespace},{.metadata.name},{.spec.containers[*].image}{"\n"}' | tr -s ' ' '\n'
 
 # Option 3 - pod container images and tags
