@@ -219,6 +219,24 @@ kubectl -n <namespace> rollout restart daemonset <daemonset-name>
 kubectl -n <namespace> rollout restart statefulsets <statefulset-name>
 ```
 
+## Metrics Server in Kubernetes on Docker Desktop for Mac
+To get around issue with certificates in your local Docker Desktop Kubernetes
+```shell script
+kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+```
+Edit the `metrics-server` deployment and inject `--kubelet-insecure-tls` to the `args` key:
+```yaml
+spec:
+  containers:
+  - args:
+    - --cert-dir=/tmp
+    - --secure-port=443
+    - --kubelet-insecure-tls
+    - --kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname
+    - --kubelet-use-node-status-port
+    - --metric-resolution=15s
+```
+
 ### Resources
 Most of the code above is self experimenting and reading the docs. Some are copied and modified to my needs from other resources...
 * https://kubernetes.io/docs/reference/kubectl/cheatsheet/
