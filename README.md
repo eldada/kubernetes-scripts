@@ -4,7 +4,7 @@ A collection of scripts for various tasks in [Kubernetes](https://kubernetes.io/
 ## Usage
 Each script has a `usage` function. See usage with
 ```shell script
-$ <script> --help
+<script> --help
 ```
 
 ## Scripts
