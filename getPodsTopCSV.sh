@@ -142,7 +142,7 @@ getPodsTop () {
     fi
 
     while ${condition}; do
-        line=$(kubectl top pod ${NAMESPACE} "${POD}" --no-headers ${CONTAINERS})
+        line=$(kubectl top pod ${NAMESPACE} "${POD}" --no-headers ${CONTAINERS} --use-protocol-buffers)
 #        echo "--- $line"
         local final_line=
 
