@@ -148,7 +148,7 @@ getRequestsAndLimits () {
         mem_limit=$(formatMemory "$(echo "${l}" | awk -F, '{print $7}')")
 
         # Adding pod and container actual usage with pod top data
-        line=$(kubectl top pod -n ${namespace} ${pod} --containers | grep " ${container} ")
+        line=$(kubectl top pod -n ${namespace} ${pod} --containers --use-protocol-buffers | grep " ${container} ")
 
         cpu_usage=$(formatCpu "$(echo "${line}" | awk '{print $3}')")
         memory_usage=$(formatMemory "$(echo "${line}" | awk '{print $4}')")
