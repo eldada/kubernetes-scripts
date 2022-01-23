@@ -23,6 +23,8 @@ for p in $pods; do
     load5=$(echo $line | awk '{print $2}')
     load15=$(echo $line | awk '{print $3}')
     cpu=$(echo $line | awk '{print $4}')
+
+    # Round down the load1 so to convert it to integer for easier comparison later
     load_int=$(echo "$load1" | sed 's/\..*//g')
 
     # If load > number of cpu, it should be marked with YES as "High load"
