@@ -1,6 +1,6 @@
 # Kubernetes Scripts
 A collection of scripts and commands for various tasks in [Kubernetes](https://kubernetes.io/).<br>
-There were all written during my work with Kubernetes on various project. Enjoy and share. Contributions are more than welcome!
+These were all written during my work with Kubernetes on various project. Enjoy and share. Contributions are more than welcome!
 
 ## Usage
 Each script has a `usage` function. See usage with
