@@ -57,6 +57,29 @@ kubectl describe nodes | grep -A 3 "Name:\|Resource .*Requests .*Limits" | grep 
 kubectl describe nodes | grep -A 3 "Resource .*Requests .*Limits"
 ``` 
 
+##### Using kube-capacity
+There is a great CLI for getting a cluster capacity and utilization - [kube-capacity](https://github.com/robscott/kube-capacity).<br>
+Install as described in the [installation](https://github.com/robscott/kube-capacity#installation) section.
+```shell script
+# Get cluster current capacity
+kube-capacity
+
+# Get cluster current capacity with pods breakdown
+kube-capacity --pods
+
+# Get cluster current capacity and utilization
+kube-capacity --util
+
+# Displaying available resources
+kube-capacity --available
+
+# Roll over all clusters in your kubectl ctx
+for a in $(kubectl ctx); do echo -e "\n---$a"; kubectl ctx $a; kube-capacity; done
+
+# Roll over all clusters in your kubectl ctx and get just summary of each cluster
+for a in $(kubectl ctx); do echo -e "\n---$a"; kubectl ctx $a; kube-capacity| grep -B 1 "\*"; done
+```
+
 #### Get all labels attached to all pods in a namespace
 ```shell script
 for a in $(kubectl get pods -n namespace1 -o name); do \
@@ -242,3 +265,4 @@ spec:
 Most of the code above is self experimenting and reading the docs. Some are copied and modified to my needs from other resources...
 * https://kubernetes.io/docs/reference/kubectl/cheatsheet/
 * https://medium.com/flant-com/kubectl-commands-and-tips-7b33de0c5476
+* https://github.com/robscott/kube-capacity
