@@ -220,7 +220,7 @@ helm template <chart>
 helm install --debug --dry-run <chart>
 ```
 
-#### Rolling restart
+### Rolling restarts
 Roll a restart across all resources managed by a Deployment, DaemonSet or StatefulSet with **zero downtime**<br>
 **IMPORTANT**: For a Deployment or StatefulSet, a zero downtime is possible only if initial replica count is **higher than 1**!
 ```shell script
