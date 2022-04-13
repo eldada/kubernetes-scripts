@@ -128,11 +128,11 @@ metadata:
 spec:
   containers:
   - name: my-ubuntu-container
-    image: ubuntu:20.04
+    image: eldada.jfrog.io/docker/ubuntu:22.04
     command:
     - 'bash'
     - '-c'
-    - 'while true; do sleep 5; done'
+    - 'while true; do date; sleep 60; done'
 ZZZ
 
 # Shell into the pod
