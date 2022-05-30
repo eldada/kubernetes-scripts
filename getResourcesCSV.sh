@@ -131,7 +131,7 @@ getRequestsAndLimits () {
 
     # Prepare header for output CSV
     if [ "${HEADERS}" == true ]; then
-        echo "Namespace,Pod,Container,CPU request,CPU Usage,Memory request,Memory Usage,CPU limit,Memory limit" > "${OUT}"
+        echo "Namespace,Pod,Container,CPU request,CPU Usage,Memory request,Memory Usage,CPU limit,Memory limit" | tee "${OUT}"
     else
         echo -n "" > "${OUT}"
     fi
