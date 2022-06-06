@@ -239,17 +239,17 @@ To get around issue with certificates in your local Docker Desktop Kubernetes
 ```shell script
 kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
 ```
-Edit the `metrics-server` deployment and inject `--kubelet-insecure-tls` to the `args` key:
+Edit the `metrics-server` deployment and add `--kubelet-insecure-tls` to the `args` key:
 ```yaml
 spec:
   containers:
   - args:
     - --cert-dir=/tmp
     - --secure-port=443
-    - --kubelet-insecure-tls
     - --kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname
     - --kubelet-use-node-status-port
     - --metric-resolution=15s
+    - --kubelet-insecure-tls
 ```
 
 ### Resources
