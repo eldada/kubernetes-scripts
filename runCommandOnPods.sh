@@ -34,6 +34,7 @@ Usage: ${SCRIPT_NAME} <options>
 
 Examples:
 ========
+${SCRIPT_NAME} --namespace demo -pods artifactory-primary -exec "uptime" -container artifactory-app
 
 END_USAGE
 
