@@ -70,6 +70,8 @@ processOptions () {
             ;;
         esac
     done
+
+    [[ -z "${CONTAINER}" ]] && echo "WARNING: No container set. Kubectl will default to the first container in the pod"
 }
 
 # Test connection to a cluster by kubectl
@@ -88,13 +90,14 @@ runCommandOnPods () {
     echo ${list}
 
     for l in ${list}; do
-        echo -e "\n---- Pod: $l"
+        echo -en "\n---- Pod: $l"
 
 #        set -x
         if [[ -n "${CONTAINER}" ]]; then
-            echo "---- (Container: ${CONTAINER})"
+            echo " (Container: ${CONTAINER})"
             kubectl exec ${NAMESPACE} ${l} -c ${CONTAINER} -- ${EXEC}
         else
+            echo
             kubectl exec ${NAMESPACE} ${l} -- ${EXEC}
         fi
 #        set +x
