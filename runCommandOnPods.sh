@@ -8,7 +8,6 @@
 EXEC="df -h"
 PODS=
 CONTAINER=
-NAMESPACE=--all-namespaces
 SCRIPT_NAME=$0
 
 ######### Functions #########
@@ -25,7 +24,7 @@ ${SCRIPT_NAME} - Run a given command on all pods matching criteria
 
 Usage: ${SCRIPT_NAME} <options>
 
--n | --namespace <name>               : Namespace to analyse.    Default: --all-namespaces
+-n | --namespace <name>               : Namespace to analyse
 -p | --pods <string>                  : Pods to run on (pattern)
 -c | --container <string>             : Container to run on (name)
 -x | --exec <string>                  : Command to execute
@@ -46,7 +45,7 @@ processOptions () {
     while [[ $# -gt 0 ]]; do
         case "$1" in
             -n | --namespace)
-                NAMESPACE="--namespace $2"
+                NAMESPACE="-n $2"
                 shift 2
             ;;
             -x | --exec)
@@ -71,6 +70,7 @@ processOptions () {
         esac
     done
 
+    [[ -z "${NAMESPACE}" ]] && errorExit "Must provide a namespace"
     [[ -z "${CONTAINER}" ]] && echo "WARNING: No container set. Kubectl will default to the first container in the pod"
 }
 
@@ -87,7 +87,7 @@ runCommandOnPods () {
     else
         list=$(kubectl get pods ${NAMESPACE} -o custom-columns=:metadata.name)
     fi
-    echo ${list}
+    echo "${list}"
 
     for l in ${list}; do
         echo -en "\n---- Pod: $l"
