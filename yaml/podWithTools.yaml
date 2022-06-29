@@ -1,0 +1,30 @@
+###########################################################
+## This file has the configuration for
+## - A pod with an ubuntu container installed with some basic tools like vim, curl
+##
+## Deploy: kubectl apply -f podWithTools.yaml
+## Terminal access: kubectl exec -it pod-with-tools -- bash
+## Remove: kubectl delete -f podWithTools.yaml
+###########################################################
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-with-tools
+spec:
+  containers:
+    - name: ubuntu
+      image: ubuntu:22.04
+      command:
+        - 'bash'
+        - '-c'
+        - >
+          echo "############# Setting up the tools...";
+          apt update && apt install vim curl -y;
+          sleep 1d
+#      resources:
+#        limits:
+#          cpu: "2"
+#          memory: 100Mi
+#        requests:
+#          cpu: 5m
+#          memory: 50Mi
