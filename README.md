@@ -18,6 +18,7 @@ Each script has a `usage` function. See usage with
 * [runCommandOnPods.sh](runCommandOnPods.sh): Run a command on a list of pods.
 
 ## YAML
+* [memory.yaml](yaml/memory.yaml): A pod using a given block of memory for a given time.<br>
 * [podWithTools.yaml](yaml/podWithTools.yaml): A pod with some basic tools (`vi` and `curl`) for easy debugging.<br>
 * [podWithHostFS.yaml](yaml/podWithHostFS.yaml): A pod with the host root file system mounted into it.<br>
   **WARNING:** There is danger of corrupting your Kubernetes host. Use with extra care!

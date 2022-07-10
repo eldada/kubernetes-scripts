@@ -1,0 +1,52 @@
+###########################################################
+## This file has the configuration for
+## - A pod with an ubuntu container installed with some basic tools like vim, curl.
+##   This container runs a script that holds a block of memory for a given time
+##
+## Deploy: kubectl apply -f memory.yaml
+## Terminal access: kubectl exec -it pod-memory -- bash
+## Remove: kubectl delete -f memory.yaml
+###########################################################
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: 0-eldada
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-memory
+  namespace: 0-eldada
+spec:
+  containers:
+    - name: container-memory
+      image: ubuntu:22.04
+      command:
+        - 'bash'
+        - '-c'
+        - >
+          apt update; apt install -y vim curl;
+          echo "#######################################";
+          echo "### Pulling memory script";
+          curl -f -s -o ~/memory.sh https://raw.githubusercontent.com/eldada/command-examples/master/scripts/memory.sh;
+          chmod +x ~/memory.sh;
+          echo "### Running memory.sh";
+          ~/memory.sh --mb ${MEMORY_TO_USE_MB} --wait ${TIME_TO_HOLD} --restart ${RESTART};
+          echo "Sleeping forever...";
+          while true; do date; sleep 10; done
+      env:
+        ## Actual memory used in the container will be MEMORY_TO_USE_MB + other system processes (about 30 MB)
+        - name: MEMORY_TO_USE_MB
+          value: "500"
+        - name: TIME_TO_HOLD
+          value: "300"
+        - name: RESTART
+          value: "false"
+## WARNING: Need to set a limit twice as much as the required memory (MEMORY_TO_USE_MB) to avoid a OOMKill
+#      resources:
+#        limits:
+#          cpu: "2"
+#          memory: 2000Mi
+#        requests:
+#          cpu: 5m
+#          memory: 50Mi
