@@ -4,6 +4,7 @@
 ##   This container runs a script that holds a block of memory for a given time
 ##
 ## Deploy: kubectl apply -f memory.yaml
+## Update (force replacing with new config): kubectl apply -f memory.yaml --force
 ## Terminal access: kubectl exec -it pod-memory -- bash
 ## Remove: kubectl delete -f memory.yaml
 ###########################################################
