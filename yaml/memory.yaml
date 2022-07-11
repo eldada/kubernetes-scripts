@@ -1,5 +1,6 @@
 ###########################################################
 ## This file has the configuration for
+## - A namespace called 0-eldada for isolation
 ## - A pod with an ubuntu container installed with some basic tools like vim, curl.
 ##   This container runs a script that holds a block of memory for a given time
 ##
