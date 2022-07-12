@@ -20,20 +20,21 @@ metadata:
   name: pod-memory
   namespace: 0-eldada
 spec:
+  securityContext:
+    runAsUser: 1000
+    fsGroup: 1000
   containers:
     - name: container-memory
-      image: ubuntu:22.04
+      image: eldada.jfrog.io/docker/ubuntu-with-tools:22.10
       command:
         - 'bash'
         - '-c'
         - >
-          apt update; apt install -y vim curl;
           echo "#######################################";
-          echo "### Pulling memory script";
-          curl -f -s -o ~/memory.sh https://raw.githubusercontent.com/eldada/command-examples/master/scripts/memory.sh;
-          chmod +x ~/memory.sh;
+          echo "### Downloading memory.sh";
+          curl -f -s -o ./memory.sh https://raw.githubusercontent.com/eldada/command-examples/master/scripts/memory.sh;
           echo "### Running memory.sh";
-          ~/memory.sh --mb ${MEMORY_TO_USE_MB} --wait ${TIME_TO_HOLD} --restart ${RESTART};
+          bash ./memory.sh --mb ${MEMORY_TO_USE_MB} --wait ${TIME_TO_HOLD} --restart ${RESTART} || exit 1;
           echo "Sleeping forever...";
           while true; do date; sleep 10; done
       env:
