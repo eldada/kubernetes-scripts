@@ -18,7 +18,7 @@ echo "Node, Load 1 min, Load 5 min, Load 15 min, CPU, High load"
 for p in $pods; do
     alert="-"
     node=$(kubectl describe po -n kube-system $p | grep Node: | awk '{print $2}')
-    line=$(kubectl exec -n kube-system $p -- sh -c "cat /proc/loadavg | awk '{print \$1 \" \" \$2 \" \" \$3 \" \"}' ; nproc" | tr -d '\n')
+    line=$(kubectl exec -n kube-system $p -c kube-proxy -- sh -c "cat /proc/loadavg | awk '{print \$1 \" \" \$2 \" \" \$3 \" \"}' ; nproc" | tr -d '\n')
     load1=$(echo $line | awk '{print $1}')
     load5=$(echo $line | awk '{print $2}')
     load15=$(echo $line | awk '{print $3}')
