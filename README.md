@@ -172,6 +172,9 @@ kubectl get pods -A -o=jsonpath='{range .items[*]}{.metadata.namespace},{.metada
 
 # Option 3 - pod container images and tags
 kubectl get pods -A -o=jsonpath='{..containers[*].image}' | tr -s ' ' '\n'
+
+# Add a uniqe sorting of results
+kubectl get pods -A -o=jsonpath='{..containers[*].image}' | tr -s ' ' '\n' | sort | uniq
 ```
 Look into [a few more examples](https://kubernetes.io/docs/tasks/access-application-cluster/list-all-running-container-images) of listing containers
 
