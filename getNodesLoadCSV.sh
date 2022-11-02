@@ -22,14 +22,11 @@ echo "Node, Load 1 min, Load 5 min, Load 15 min, CPU, High load"
 for p in $pods; do
     alert="-"
     node=$(kubectl describe po -n kube-system $p | grep Node: | awk '{print $2}')
-    line=$(kubectl exec -n kube-system $p -c kube-proxy -- sh -c "cat /proc/loadavg | awk '{print \$1 \" \" \$2 \" \" \$3 \" \"}' ; nproc" | tr -d '\n')
-    load1=$(echo $line | awk '{print $1}')
-    load5=$(echo $line | awk '{print $2}')
-    load15=$(echo $line | awk '{print $3}')
-    cpu=$(echo $line | awk '{print $4}')
+    read -r load1 load5 load15 dummy1 dummy2 cpu <<< $(kubectl exec -n kube-system $p -c kube-proxy -- sh -c "cat /proc/loadavg; echo ' '; nproc" 2> /dev/null | tr -d '\n')
 
-    # Round down the load5 so to convert it to integer for easier comparison later
-    load_int=$(echo "$load5" | sed 's/\..*//g')
+
+    # Convert load5 to integer for easier comparison later
+    load_int=${load5%.*}
 
     # If load > number of cpu, it should be marked with YES as "High load"
     if [[ $load_int -gt $cpu ]]; then alert="YES"; fi

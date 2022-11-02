@@ -16,6 +16,7 @@ Each script has a `usage` function. See usage with
 * [podReady.sh](podReady.sh): Simple script to check if pod is really ready. Check status is 'Running' and that all containers are ready. Returns 0 if ready. Returns 1 if not ready.
 * [getNodesLoadCSV.sh](getNodesLoadCSV.sh): Traverse over the `kube-proxy` pods to get the nodes load average and number of CPUs in a CSV format. Will also mark high load node with big `YES` in the output.
 * [runCommandOnPods.sh](runCommandOnPods.sh): Run a command on a list of pods.
+* [getPodsLoad.sh](getPodsLoad.sh): Get formatted results of pods in a namespace underlying node's load average (using cat /proc/loadavg).
 
 ## YAML
 * [memory.yaml](yaml/memory.yaml): A pod using a given block of memory for a given time.<br>
