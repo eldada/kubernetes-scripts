@@ -69,7 +69,7 @@ getPodsLoad () {
     echo "Pod, Load 1, Load 5, Load 15"
 
     # Get list of pods
-    pods=$(kubectl get pods -n "${NAMESPACE}" --no-headers -o=custom-columns=NAMESPACE:.metadata.name)
+    pods=$(kubectl get pods -n "${NAMESPACE}" --no-headers -o=custom-columns=NAME:.metadata.name)
 
     # Go over the pods and extract data
     for p in $pods; do
