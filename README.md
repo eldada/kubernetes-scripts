@@ -9,14 +9,15 @@ Each script has a `usage` function. See usage with
 ```
 
 ## Scripts
+* [countPodsAndContainerPerNodeCSV.sh](countPodsAndContainerPerNodeCSV.sh): Count number of pods and containers per node. Print in CSV format.
 * [findEmptyNamespaces.sh](findEmptyNamespaces.sh): Loop over all namespaces in a cluster and find empty ones.
+* [getPodsLoad.sh](getPodsLoad.sh): Get formatted results of pods in a namespace underlying node's load average (using cat /proc/loadavg).
 * [getPodsTopCSV.sh](getPodsTopCSV.sh): Get a pod's cpu and memory usage (optionally per container) written as CSV formatted file.
 * [getResourcesCSV.sh](getResourcesCSV.sh): Get all pods resources requests, limits and actual usage per container in a CSV format with values normalized.
 * [getRestartingPods.sh](getRestartingPods.sh): Get all pods (all or single namespace) that have restarts detected in one or more containers. Formatted in CSV.
 * [podReady.sh](podReady.sh): Simple script to check if pod is really ready. Check status is 'Running' and that all containers are ready. Returns 0 if ready. Returns 1 if not ready.
 * [getNodesLoadCSV.sh](getNodesLoadCSV.sh): Traverse over the `kube-proxy` pods to get the nodes load average and number of CPUs in a CSV format. Will also mark high load node with big `YES` in the output.
 * [runCommandOnPods.sh](runCommandOnPods.sh): Run a command on a list of pods.
-* [getPodsLoad.sh](getPodsLoad.sh): Get formatted results of pods in a namespace underlying node's load average (using cat /proc/loadavg).
 
 ## YAML
 * [memory.yaml](yaml/memory.yaml): A pod using a given block of memory for a given time.<br>
@@ -174,7 +175,7 @@ kubectl get pods -A -o=jsonpath='{range .items[*]}{.metadata.namespace},{.metada
 # Option 3 - pod container images and tags
 kubectl get pods -A -o=jsonpath='{..containers[*].image}' | tr -s ' ' '\n'
 
-# Add a uniqe sorting of results
+# Add a unique sorting of results
 kubectl get pods -A -o=jsonpath='{..containers[*].image}' | tr -s ' ' '\n' | sort | uniq
 ```
 Look into [a few more examples](https://kubernetes.io/docs/tasks/access-application-cluster/list-all-running-container-images) of listing containers
