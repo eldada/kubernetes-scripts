@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Count number of containers per node in a kubernetes cluster and write a CSV formatted output
+# Count number of pods and containers per node in a kubernetes cluster and write a CSV formatted output
 
 errorExit () {
     echo -e "\nERROR: $1\n"
