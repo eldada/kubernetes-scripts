@@ -1,0 +1,22 @@
+###########################################################
+## This file has the configuration for
+## - A pod with podman installed
+##
+## Deploy: kubectl apply -f podmanPod.yaml
+## Terminal access: kubectl exec -it podman -- bash
+## Remove: kubectl delete -f podmanPod.yaml
+## HINT: run alias docker=podman in the container
+###########################################################
+apiVersion: v1
+kind: Pod
+metadata:
+  name: podman
+spec:
+  containers:
+    - name: podman
+      image: quay.io/podman/stable
+      args:
+        - sleep
+        - "1d"
+      securityContext:
+        privileged: true

@@ -23,6 +23,7 @@ Each script has a `usage` function. See usage with
 * [memory.yaml](yaml/memory.yaml): A pod using a given block of memory for a given time.<br>
 * [podWithTools.yaml](yaml/podWithTools.yaml): A pod with some basic tools (`vi` and `curl`) for easy debugging.<br>
 * [podWithHostFS.yaml](yaml/podWithHostFS.yaml): A pod with the host root file system mounted into it.<br>
+* [podmanPos.yaml](yaml/podmanPod.yaml): A pod with [podman](https://podman.io/) in it.<br>
   **WARNING:** There is danger of corrupting your Kubernetes host. Use with extra care!
 
 ## Commands
