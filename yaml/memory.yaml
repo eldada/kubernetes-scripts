@@ -2,7 +2,8 @@
 ## This file has the configuration for
 ## - A namespace called 0-eldada for isolation
 ## - A pod with an ubuntu container installed with some basic tools like vim, curl.
-##   This container runs a script that holds a block of memory for a given time
+##   This container runs a script that holds a block of memory for a given time with
+##   an optional gap between memory block runs.
 ##
 ## Deploy: kubectl apply -f memory.yaml
 ## Update (force replacing with new config): kubectl apply -f memory.yaml --force
@@ -34,18 +35,21 @@ spec:
           echo "### Downloading memory.sh";
           curl -f -s -o ./memory.sh https://raw.githubusercontent.com/eldada/command-examples/master/scripts/memory.sh;
           echo "### Running memory.sh";
-          bash ./memory.sh --mb ${MEMORY_TO_USE_MB} --wait ${TIME_TO_HOLD} --restart ${RESTART} || exit 1;
+          bash ./memory.sh --mb ${MEMORY_TO_USE_MB} --wait ${TIME_TO_HOLD} --restart ${RESTART} --gap ${GAP} || exit 1;
           echo "Sleeping forever...";
           while true; do date; sleep 10; done
       env:
-        ## Actual memory used in the container will be MEMORY_TO_USE_MB + other system processes (about 30 MB)
+        ## Actual memory used in the container will be MEMORY_TO_USE_MB + other system processes
         - name: MEMORY_TO_USE_MB
           value: "500"
         - name: TIME_TO_HOLD
-          value: "300"
+          value: "60"
         - name: RESTART
-          value: "false"
-## WARNING: Need to set a limit twice as much as the required memory (MEMORY_TO_USE_MB) to avoid a OOMKill
+          value: "true"
+        - name: GAP
+          value: "45"
+## WARNING: Need to set a limit twice as much as the required memory (MEMORY_TO_USE_MB) to avoid an OOMKill.
+##          This is due to a spike in memory usage during the actual creation of the memory blob.
 #      resources:
 #        limits:
 #          cpu: "2"
