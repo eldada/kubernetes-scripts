@@ -243,6 +243,20 @@ kubectl -n <namespace> rollout restart daemonset <daemonset-name>
 kubectl -n <namespace> rollout restart statefulsets <statefulset-name>
 ```
 
+### Mark Nodes with some roles for visibility (ex. EKS nodes marked with the LifeCycle,NodeType)
+* Most use of it can be gained with some GUI client (Lens), still "k get nodes" shows ROLE fiels as well
+```shell
+for n in $(kubectl get nodes -o 'jsonpath={.items[*].metadata.name}') 
+do 
+  lb="" 
+  for a in $(kubectl label --list nodes $n | sort | grep -e NodeType -e lifecycle | cut -d= -f 2) 
+    do 
+      lb="${lb}$a" 
+  done 
+  kubectl label nodes $n node-role.kubernetes.io/$lb= 
+done
+```
+
 ## Metrics Server in Kubernetes on Docker Desktop for Mac
 To get around issue with certificates in your local Docker Desktop Kubernetes
 ```shell script
