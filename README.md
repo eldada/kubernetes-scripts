@@ -244,16 +244,14 @@ kubectl -n <namespace> rollout restart statefulsets <statefulset-name>
 ```
 
 ### Mark Nodes with some roles for visibility (ex. EKS nodes marked with the LifeCycle,NodeType)
-* Most use of it can be gained with some GUI client (Lens), still "k get nodes" shows ROLE fiels as well
+* Most use of it can be gained with some GUI client (Lens), still "k get nodes" shows ROLE fields as well
 ```shell
-for n in $(kubectl get nodes -o 'jsonpath={.items[*].metadata.name}') 
-do 
-  lb="" 
-  for a in $(kubectl label --list nodes $n | sort | grep -e NodeType -e lifecycle | cut -d= -f 2) 
-    do 
-      lb="${lb}$a" 
-  done 
-  kubectl label nodes $n node-role.kubernetes.io/$lb= 
+for n in $(kubectl get nodes -o 'jsonpath={.items[*].metadata.name}') ; do
+  lb=""
+  for a in $(kubectl label --list nodes $n | sort | grep -e NodeType -e lifecycle | cut -d= -f 2); do
+    lb="${lb}$a"
+  done
+  kubectl label nodes $n node-role.kubernetes.io/$lb=
 done
 ```
 

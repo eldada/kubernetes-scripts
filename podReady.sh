@@ -1,44 +1,83 @@
 #!/bin/bash
-
-# UNCOMMENT this line to enable debugging
-# set -xv
+# set -x
 
 ## Simple script to check if pod is really ready.
-# Check status is 'Running' and that all containers are ready.
+# Check containers are ready
 # Return 1 if not ready. Return 0 if ready.
 
-# pod is the pod name
-pod=$1
-[ -z "${pod}" ] && echo "ERROR: Pod name not passed" && exit 1
+NAMESPACE=default
+POD=
 
-# ns is namespace. Defaults to 'default'
-ns=$2
-[ -z "${ns}" ] && ns='default'
+errorExit () {
+    echo -e "\nERROR: $1\n"
+    exit 1
+}
 
-# Return code
-result=1
+usage () {
+    cat << END_USAGE
 
-# Get the pod record from 'kubectl get pods'
-p=$(kubectl get pods --namespace ${ns} | grep "${pod}")
+${SCRIPT_NAME} - Get pod readiness (all containers ready).
+                 Exit with 0 of all containers are ready. Exit with 1 if not.
 
-if [ -n "${p}" ]; then
-    ## Uncomment to see output later down the script
-    # pod_name=$(echo -n "${p}" | awk '{print $1}')
-    ready=$(echo -n "${p}" | awk '{print $2}')
-    ready_actual=$(echo -n "${ready}" | awk -F/ '{print $1}')
-    ready_max=$(echo -n "${ready}" | awk -F/ '{print $2}')
-    status=$(echo -n "${p}" | awk '{print $3}')
+Usage: ${SCRIPT_NAME} <options>
 
-    ## Uncomment to see output
-    # echo "... pod ${pod_name}; ready is ${ready}; ready_actual is ${ready_actual}; ready_max is ${ready_max}; status is ${status}"
-    if [ "${ready_actual}" == "${ready_max}" ] && [ "${status}" == "Running" ]; then
-        result=0
-    fi
-else
-    echo "ERROR: Pod ${pod} not found"
-fi
+-n | --namespace <name>      : Namespace. Default: default
+-p | --pod       <name>      : Pod to check
+-h | --help                  : Show this usage
 
-## Uncomment to see output
-# echo "Result: ${result}"
+Examples:
+========
+$ ${SCRIPT_NAME} --namespace test --pod nginx-1234asdf
 
-exit ${result}
+END_USAGE
+
+    exit 1
+}
+
+# Process command line options. See usage above for supported options
+processOptions () {
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -n | --namespace)
+                NAMESPACE="$2"
+                shift 2
+            ;;
+            -p | --pod)
+                POD="$2"
+                shift 2
+            ;;
+            -h | --help)
+                usage
+                exit 0
+            ;;
+            *)
+                usage
+            ;;
+        esac
+    done
+
+    if [[ -z "${POD}" ]]; then errorExit "Pod not passed"; fi
+}
+
+checkPod () {
+    local ready_status
+    ready_status=$(kubectl get pod -n ${NAMESPACE} ${POD} --output=jsonpath='{.status.containerStatuses[*].ready}')
+
+    # Leave only unique words
+    ready_status=$(echo "$ready_status" | tr ' ' '\n' | sort -u)
+
+    [[ $ready_status =~ ^true$ ]] && return 0
+
+    return 1
+}
+
+main () {
+    processOptions "$@"
+
+    checkPod && exit 0
+    exit 1
+}
+
+######### Main #########
+
+main "$@"
