@@ -83,7 +83,7 @@ getRestartingPods () {
 
     out_temp=$(mktemp)
 
-    data=$(kubectl get pod ${NAMESPACE} -o=jsonpath='{range .items[*]}{.metadata.namespace},{.metadata.name} {.status.containerStatuses[*].restartCount}{"\n"}')
+    data=$(kubectl get pod ${NAMESPACE} -o=jsonpath='{range .items[*]}{.metadata.namespace},{.metadata.name} {.status.containerStatuses[*].restartCount}{"\n"}{end}')
 
     OLD_IFS=${IFS}
     IFS=$'\n'
