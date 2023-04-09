@@ -83,13 +83,13 @@ getRestartingPods () {
 
     out_temp=$(mktemp)
 
-    data=$(kubectl get pod ${NAMESPACE} -o=jsonpath='{range .items[*]}{.metadata.namespace},{.metadata.name},{.status.containerStatuses[*].restartCount}{"\n"}')
+    data=$(kubectl get pod ${NAMESPACE} -o=jsonpath='{range .items[*]}{.metadata.namespace},{.metadata.name} {.status.containerStatuses[*].restartCount}{"\n"}')
 
     OLD_IFS=${IFS}
     IFS=$'\n'
     for l in ${data}; do
-        namespace_and_pod=$(echo "${l}" | awk -F, '{print $1","$2}')
-        restarts=$(echo "${l}" | awk -F, '{print $3}')
+        # Extract the fields so the restarts can be added up later
+        IFS=${OLD_IFS}; read -r namespace_and_pod restarts <<< "${l}"; OLD_IFS=${IFS}; IFS=$'\n'
 
         # Add restarts only if values exist
         if [ -n "${restarts}" ]; then
