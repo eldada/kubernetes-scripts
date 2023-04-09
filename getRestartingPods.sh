@@ -91,15 +91,12 @@ getRestartingPods () {
         # Extract the fields so the restarts can be added up later
         IFS=${OLD_IFS}; read -r namespace_and_pod restarts <<< "${l}"; OLD_IFS=${IFS}; IFS=$'\n'
 
-        # Add restarts only if values exist
-        if [ -n "${restarts}" ]; then
-            # Go over container restart and add them up
-            restart_sum=$(addValues "${restarts}")
+        # Go over container restart and add them up
+        restart_sum=$(addValues "${restarts}")
 
-            if [ "${restart_sum}" -gt 0 ]; then
-                local final_line=${namespace_and_pod},${restart_sum}
-                echo "${final_line}" >> "${out_temp}"
-            fi
+        if [ "${restart_sum}" -gt 0 ]; then
+            local final_line=${namespace_and_pod},${restart_sum}
+            echo "${final_line}" >> "${out_temp}"
         fi
     done
     IFS=${OLD_IFS}
