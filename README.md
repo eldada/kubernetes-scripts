@@ -255,12 +255,28 @@ for n in $(kubectl get nodes -o 'jsonpath={.items[*].metadata.name}') ; do
 done
 ```
 
-## Metrics Server in Kubernetes on Docker Desktop for Mac
-To get around issue with certificates in your local Docker Desktop Kubernetes
-```shell script
+## A Multi Node Kubernetes cluster in Mac with Kind
+To run a multi node Kubernetes cluster in Mac with [Kind](https://kind.sigs.k8s.io/), do the following (assuming Docker Desktop is already installed)
+- Install `kind` as described in [kind installation](https://kind.sigs.k8s.io/docs/user/quick-start/#installation)
+- Start a local, three worker nodes cluster using the [kind-config.yaml](yaml/kind-config.yaml) config file
+```shell
+kind create cluster --config yaml/kind-config.yaml
+```
+
+## Metrics Server in Kubernetes on Docker Desktop or Kind for Mac
+To get around issue with certificates in your local Docker Desktop or Kind Kubernetes
+
+Install a `metrics-server`
+```shell
 kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
 ```
-Edit the `metrics-server` deployment and add `--kubelet-insecure-tls` to the `args` key:
+
+Patch the `metrics-server` Deployment with the fix
+```shell
+kubectl patch deployment metrics-server -n kube-system --patch-file yaml/metrics-server-patch.yaml
+```
+
+**OR** Edit the `metrics-server` deployment directly and add `--kubelet-insecure-tls` to the `args` key:
 ```yaml
 spec:
   containers:
