@@ -260,7 +260,12 @@ To run a multi node Kubernetes cluster in Mac with [Kind](https://kind.sigs.k8s.
 - Install `kind` as described in [kind installation](https://kind.sigs.k8s.io/docs/user/quick-start/#installation)
 - Start a local, three worker nodes cluster using the [kind-config.yaml](yaml/kind-config.yaml) config file
 ```shell
-kind create cluster --config yaml/kind-config.yaml
+kind create cluster --config yaml/kind-config.yaml --name demo
+```
+
+Delete the cluster with
+```shell
+kind delete cluster --name demo
 ```
 
 ## Metrics Server in Kubernetes on Docker Desktop or Kind for Mac
