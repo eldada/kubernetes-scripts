@@ -7,6 +7,7 @@
 
 OUT=resources.csv
 NAMESPACE=--all-namespaces
+SKIP_USAGE=false
 QUITE=false
 HEADERS=true
 CONSOLE_ONLY=false
@@ -28,6 +29,7 @@ Usage: ${SCRIPT_NAME} <options>
 
 -n | --namespace <name>                : Namespace to analyse.    Default: --all-namespaces
 -o | --output <name>                   : Output file.             Default: ${OUT}
+-s | --skip-usage                      : Don't get usage (kubectl top)
 -q | --quite                           : Don't output to stdout.  Default: Output to stdout
 -h | --help                            : Show this usage
 --no-headers                           : Don't print headers line
@@ -55,6 +57,10 @@ processOptions () {
             -o | --output)
                 OUT=$2
                 shift 2
+            ;;
+            -s | --skip-usage)
+                SKIP_USAGE=true
+                shift 1
             ;;
             -q | --quite)
                 QUITE=true
@@ -148,10 +154,15 @@ getRequestsAndLimits () {
         mem_limit=$(formatMemory "$(echo "${l}" | awk -F, '{print $7}')")
 
         # Adding pod and container actual usage with pod top data
-        line=$(kubectl top pod -n ${namespace} ${pod} --containers --use-protocol-buffers | grep " ${container} ")
+        if [[ "${SKIP_USAGE}" =~ false ]]; then
+            line=$(kubectl top pod -n ${namespace} ${pod} --containers --use-protocol-buffers | grep " ${container} ")
 
-        cpu_usage=$(formatCpu "$(echo "${line}" | awk '{print $3}')")
-        memory_usage=$(formatMemory "$(echo "${line}" | awk '{print $4}')")
+            cpu_usage=$(formatCpu "$(echo "${line}" | awk '{print $3}')")
+            memory_usage=$(formatMemory "$(echo "${line}" | awk '{print $4}')")
+        else
+            cpu_usage="-"
+            memory_usage="-"
+        fi
 
         final_line=${namespace},${pod},${container},${cpu_request},${cpu_usage},${mem_request},${memory_usage},${cpu_limit},${mem_limit}
         if [ "${QUITE}" == true ]; then
