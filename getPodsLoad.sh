@@ -5,6 +5,7 @@
 
 # Get formatted results of the pods underlying node's load average (using cat /proc/loadavg)
 NAMESPACE=default
+INCLUDE_FILTER=.*
 SCRIPT_NAME=$0
 
 ######### Functions #########
@@ -22,11 +23,16 @@ ${SCRIPT_NAME} - Get formatted results of the pods underlying node's load averag
 Usage: ${SCRIPT_NAME} <options>
 
 -n | --namespace <name>      : Namespace to use. Default: default
+-i | --include <string>      : Include only pods with this string in their name
 -h | --help                  : Show this usage
 
 Examples:
 ========
-Get load form pods in namespace bar:            $ ${SCRIPT_NAME} --namespace bar
+# Get load form pods in namespace bar:
+${SCRIPT_NAME} --namespace bar
+
+# Get only specific pods in namespace
+${SCRIPT_NAME} --namespace bar --include artifactory
 
 END_USAGE
 
@@ -41,6 +47,10 @@ processOptions () {
                 NAMESPACE="$2"
                 shift 2
             ;;
+            -i | --include)
+                INCLUDE_FILTER="$2"
+                shift 2
+            ;;
             -h | --help)
                 usage
                 exit 0
@@ -50,6 +60,10 @@ processOptions () {
             ;;
         esac
     done
+
+    if [[ -z "${INCLUDE_FILTER}" ]]; then
+        INCLUDE_FILTER=.*
+    fi
 }
 
 # Test connection and that there are pods in the namespace
@@ -73,8 +87,10 @@ getPodsLoad () {
 
     # Go over the pods and extract data
     for p in $pods; do
-        read -r load1 load5 load15 dummy <<< $(kubectl exec -n "${NAMESPACE}" "$p" -- sh -c "cat /proc/loadavg" 2> /dev/null)
-        echo "$p, $load1, $load5, $load15"
+        if [[ ${p} =~ ${INCLUDE_FILTER} ]]; then
+            read -r load1 load5 load15 dummy <<< $(kubectl exec -n "${NAMESPACE}" "$p" -- sh -c "cat /proc/loadavg" 2> /dev/null)
+            echo "$p, $load1, $load5, $load15"
+        fi
     done
 }
 
