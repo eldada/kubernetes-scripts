@@ -24,6 +24,7 @@ Each script has a `usage` function. See usage with
 * [podWithTools.yaml](yaml/podWithTools.yaml): A pod with some basic tools (`vi` and `curl`) for easy debugging.<br>
 * [podWithHostFS.yaml](yaml/podWithHostFS.yaml): A pod with the host root file system mounted into it.<br>
 * [podmanPos.yaml](yaml/podmanPod.yaml): A pod with [podman](https://podman.io/) in it.<br>
+* [kind-config.yaml](yaml/kind-config.yaml): An example [kind](https://kind.sigs.k8s.io/) configuration for a multi node K8s cluster
   **WARNING:** There is danger of corrupting your Kubernetes host. Use with extra care!
 
 ## Commands
@@ -167,13 +168,16 @@ kubectl run my-busybox --rm -i -t --restart=Never --image busybox -- sh
 #### Get formatted list of container images in pods
 Useful for listing all running containers in your cluster
 ```shell script
-# Option 1 - just the container name
+# Example 1 - just the container name
 kubectl get pods -A -o jsonpath='{..containers[*].name}' | tr -s ' ' '\n'
 
-# Option 2 - namespace, pod container images and tags
-kubectl get pods -A -o=jsonpath='{range .items[*]}{.metadata.namespace},{.metadata.name},{.spec.containers[*].image}{"\n"}' | tr -s ' ' '\n'
+# Example 2 - pod and its container images
+kubectl get pods -A -o=jsonpath='{range .items[*]}{"\n"}{.metadata.name}{":\n"}{range .spec.containers[*]}{.name},{.image}{"\n"}{end}{end}'
 
-# Option 3 - pod container images and tags
+# Example 3 - pod and its container images and its resources requests (cpu and memory)
+kubectl get pods -A -o=jsonpath='{range .items[*]}{"\n"}{.metadata.name}{":\n"}{range .spec.containers[*]}{.name},{.image}{.resources.requests.cpu},{.resources.requests.memory}{"\n"}{end}{end}'
+
+# Example 4 - pod container images and tags
 kubectl get pods -A -o=jsonpath='{..containers[*].image}' | tr -s ' ' '\n'
 
 # Add a unique sorting of results
