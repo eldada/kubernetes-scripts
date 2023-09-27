@@ -174,7 +174,7 @@ kubectl get pods -A -o jsonpath='{..containers[*].name}' | tr -s ' ' '\n'
 # Example 2 - pod and its container images
 kubectl get pods -A -o=jsonpath='{range .items[*]}{"\n"}{.metadata.name}{":\n"}{range .spec.containers[*]}{.name},{.image}{"\n"}{end}{end}'
 
-# Example 3 - pod and its container images and its resources requests (cpu and memory)
+# Example 3 - pod and its container images with their resources requests (cpu and memory)
 kubectl get pods -A -o=jsonpath='{range .items[*]}{"\n"}{.metadata.name}{":\n"}{range .spec.containers[*]}{.name},{.image}{.resources.requests.cpu},{.resources.requests.memory}{"\n"}{end}{end}'
 
 # Example 4 - pod container images and tags
