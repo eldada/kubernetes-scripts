@@ -165,23 +165,25 @@ kubectl run my-alpine --rm -i -t --restart=Never --image alpine:3.10 -- sh
 kubectl run my-busybox --rm -i -t --restart=Never --image busybox -- sh
 ```
 
-#### Get formatted list of container images in pods
+#### Get formatted list of containers and container images
 Useful for listing all running containers in your cluster
 ```shell script
-# Example 1 - just the container name
+# Example 1 - just the container names
 kubectl get pods -A -o jsonpath='{..containers[*].name}' | tr -s ' ' '\n'
+# With sorting and unique names
+kubectl get pods -A -o jsonpath='{..containers[*].name}' | tr -s ' ' '\n' | sort | uniq
 
-# Example 2 - pod and its container images
+# Example 2 - pod container images and tags
+kubectl get pods -A -o=jsonpath='{..containers[*].image}' | tr -s ' ' '\n'
+# With sorting and unique names
+kubectl get pods -A -o=jsonpath='{..containers[*].image}' | tr -s ' ' '\n' | sort | uniq
+
+# Example 3 - pod and its container images
 kubectl get pods -A -o=jsonpath='{range .items[*]}{"\n"}{.metadata.name}{":\n"}{range .spec.containers[*]}{.name},{.image}{"\n"}{end}{end}'
 
-# Example 3 - pod and its container images with their resources requests (cpu and memory)
+# Example 4 - pod and its container images with their resources requests (cpu and memory)
 kubectl get pods -A -o=jsonpath='{range .items[*]}{"\n"}{.metadata.name}{":\n"}{range .spec.containers[*]}{.name},{.image}{.resources.requests.cpu},{.resources.requests.memory}{"\n"}{end}{end}'
 
-# Example 4 - pod container images and tags
-kubectl get pods -A -o=jsonpath='{..containers[*].image}' | tr -s ' ' '\n'
-
-# Add a unique sorting of results
-kubectl get pods -A -o=jsonpath='{..containers[*].image}' | tr -s ' ' '\n' | sort | uniq
 ```
 Look into [a few more examples](https://kubernetes.io/docs/tasks/access-application-cluster/list-all-running-container-images) of listing containers
 
