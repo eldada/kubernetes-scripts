@@ -173,7 +173,7 @@ kubectl get pods -A -o jsonpath='{..containers[*].name}' | tr -s ' ' '\n'
 # With sorting and unique names
 kubectl get pods -A -o jsonpath='{..containers[*].name}' | tr -s ' ' '\n' | sort | uniq
 
-# Example 2 - pod container images and tags
+# Example 2 - container images and tags
 kubectl get pods -A -o=jsonpath='{..containers[*].image}' | tr -s ' ' '\n'
 # With sorting and unique names
 kubectl get pods -A -o=jsonpath='{..containers[*].image}' | tr -s ' ' '\n' | sort | uniq
