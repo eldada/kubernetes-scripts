@@ -79,8 +79,8 @@ canIdo () {
         resource_list=${RESOURCES}
     fi
 
-    echo "List of resources:"
-    echo "${resource_list}"
+#    echo "List of resources:"
+#    echo "${resource_list}"
 
     for resource in ${resource_list}; do
         for action in ${ACTIONS}; do
