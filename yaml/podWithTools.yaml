@@ -13,14 +13,15 @@ metadata:
 spec:
   containers:
     - name: ubuntu
-      image: ubuntu:22.04
+      image: ubuntu:23.10
       command:
         - 'bash'
         - '-c'
         - >
           echo "############# Setting up the tools...";
-          apt update && apt install vim curl git -y;
-          sleep 1d
+          apt update && apt install vim curl git jq apache2-utils -y;1
+          echo "############# Done. Sleeping for 30 days";
+          sleep 30d
 #      resources:
 #        limits:
 #          cpu: "2"
