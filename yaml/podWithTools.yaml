@@ -19,7 +19,7 @@ spec:
         - '-c'
         - >
           echo "############# Setting up the tools...";
-          apt update && apt install vim curl git jq apache2-utils -y;
+          apt update && apt install vim curl git jq apache2-utils dnsutils -y;
           echo "############# Done. Sleeping for 30 days";
           sleep 30d
 #      resources:
