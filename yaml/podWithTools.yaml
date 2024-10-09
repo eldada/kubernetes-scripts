@@ -13,7 +13,7 @@ metadata:
 spec:
   containers:
     - name: ubuntu
-      image: ubuntu:23.10
+      image: ubuntu:24.04
       command:
         - 'bash'
         - '-c'
