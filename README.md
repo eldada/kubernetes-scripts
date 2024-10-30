@@ -220,7 +220,23 @@ kubectl top pods -A --sort-by=memory | head -20
 # Roll over all kubectl contexts and get top 20 CPU users
 for a in $(kubectl ctx); do echo -e "\n---$a"; kubectl ctx $a; kubectl top pods -A --sort-by=cpu | head -20; done
 ```
- 
+
+#### Debugging Pods and Nodes
+This section is based on [debugging pods using ephemeral containers](https://kubernetes.io/docs/tasks/debug/debug-application/debug-running-pod/#ephemeral-container-example)
+and [kubectl node debug](https://kubernetes.io/docs/tasks/debug/debug-cluster/kubectl-node-debug/)
+
+##### Pod Debugging
+```shell script
+# Attach an ephemeral container to an existing container in a pod for debugging
+kubectl debug -it my-pod --image=ubuntu --target=my-container
+```
+
+##### Node Debugging
+```shell script
+# Debug a node with a new pod attached to it
+# IMPORTANT to delete the pods after exiting it. It will not be deleted automatically (although it will be in the "Completed" state)
+kubectl debug node/mynode -it --image=ubuntu
+```
 ### Helm
 
 #### Helm template
