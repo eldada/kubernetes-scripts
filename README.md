@@ -235,7 +235,7 @@ kubectl debug -it my-pod --image=ubuntu --target=my-container
 ```shell script
 # Debug a node with a new pod attached to it
 # IMPORTANT to delete the pods after exiting it. It will not be deleted automatically (although it will be in the "Completed" state)
-kubectl debug node/mynode -it --image=ubuntu
+kubectl debug node/<mynode> -it --image=ubuntu
 ```
 ### Helm
 
