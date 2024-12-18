@@ -19,7 +19,7 @@ spec:
         - '-c'
         - >
           echo "############# Setting up the tools...";
-          apt update && apt install vim curl git jq apache2-utils dnsutils traceroute -y;
+          apt update && apt install vim curl git jq apache2-utils dnsutils traceroute yq -y;
           curl -fL -s https://install-cli.jfrog.io | sh;
           echo "############# Done. Sleeping for 30 days";
           sleep 30d
