@@ -11,6 +11,7 @@ kind: Pod
 metadata:
   name: pod-with-tools
 spec:
+  terminationGracePeriodSeconds: 5
   containers:
     - name: ubuntu
       image: ubuntu:24.04
