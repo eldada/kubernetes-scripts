@@ -25,6 +25,8 @@ Each script has a `usage` function. See usage with
 * [podWithTools.yaml](yaml/podWithTools.yaml): A pod with some basic tools (`vi` and `curl`) for easy debugging.<br>
 * [podWithHostFS.yaml](yaml/podWithHostFS.yaml): A pod with the host root file system mounted into it.<br>
 * [podmanPod.yaml](yaml/podmanPod.yaml): A pod with [podman](https://podman.io/) in it.<br>
+* [superPod](yaml/superPod.yaml): A pod with the host file system and process IDs mounted for allowing to manipulate the host system and restarting kubelet.<br>
+  **WARNING:** There is danger of corrupting your Kubernetes host. Use with extra care!
 * [kind-config.yaml](yaml/kind-config.yaml): An example [kind](https://kind.sigs.k8s.io/) configuration for a multi node K8s cluster
   **WARNING:** There is danger of corrupting your Kubernetes host. Use with extra care!
 

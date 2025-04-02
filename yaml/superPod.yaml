@@ -1,0 +1,60 @@
+###########################################################
+## This file has the configuration for
+## - A pod with elevated privileges that has access to the host filesystem, kubelet and all host processes.
+##
+## Deploy: kubectl apply -f superPod.yaml
+## Terminal access: kubectl exec -it super-pod -- bash
+## Remove: kubectl delete -f superPod.yaml
+##
+## WARNING: This pod has elevated privileges and can access the host filesystem, kubelet and all host processes!
+##          This pod is not secure and should not be used in production environments.
+##
+## You can restart the kubelet and access the host /var/lib/kubelet and /var/log filesystems.
+## Restarting kubelet: nsenter -t 1 -m -p -- systemctl restart kubelet
+###########################################################
+apiVersion: v1
+kind: Pod
+metadata:
+  name: super-pod
+spec:
+  automountServiceAccountToken: true
+  containers:
+    - command:
+        - /bin/bash
+        - -c
+        - sleep 30d
+      image: eldada.jfrog.io/docker/alpine-with-tools:3.21.0
+      imagePullPolicy: IfNotPresent
+      name: super-container
+      resources:
+        limits:
+          cpu: 50m
+          memory: 100Mi
+        requests:
+          cpu: 5m
+          memory: 10Mi
+      securityContext:
+        allowPrivilegeEscalation: true
+        privileged: true
+        readOnlyRootFilesystem: false
+        runAsNonRoot: false
+      volumeMounts:
+        - mountPath: /var/lib/kubelet
+          mountPropagation: None
+          name: kubelet
+        - mountPath: /var/log
+          mountPropagation: None
+          name: varlog
+  hostPID: true
+  volumes:
+    - name: kubelet
+      hostPath:
+        path: /var/lib/kubelet
+        type: Directory
+    - name: varlog
+      hostPath:
+        path: /var/log
+        type: Directory
+## Optional nodeSelector to run the pod on a specific node
+#  nodeSelector:
+#    kubernetes.io/hostname: ip-10-100-100-10.us-east-1.compute.internal
