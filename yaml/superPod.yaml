@@ -1,12 +1,12 @@
 ###########################################################
 ## This file has the configuration for
-## - A pod with elevated privileges that has access to the host filesystem, kubelet and all host processes.
+## - A pod with elevated privileges that has access to the host filesystem and processes (using "spec.hostPID=true").
 ##
 ## Deploy: kubectl apply -f superPod.yaml
 ## Terminal access: kubectl exec -it super-pod -- bash
 ## Remove: kubectl delete -f superPod.yaml
 ##
-## WARNING: This pod has elevated privileges and can access the host filesystem, kubelet and all host processes!
+## WARNING: This pod has elevated privileges and can access the host filesystem and processes!
 ##          This pod is not secure and should not be used in production environments.
 ##
 ## You can restart the kubelet and access the host /var/lib/kubelet and /var/log filesystems.
