@@ -1,15 +1,19 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Go over all resources in the Kubernetes cluster and check if current user can run an action on them
+
+# UNCOMMENT this line to enable debugging
+# set -xv
+
 NAMESPACE=default
 ACTIONS="get list watch create update patch delete"
 RESOURCES=all
-SCRIPT_NAME=$0
+SCRIPT_NAME=$(basename "$0")
 
 ######### Functions #########
 
 errorExit () {
-    echo -e "\nERROR: $1\n"
+    echo -e "\nERROR: $1\n" >&2
     exit 1
 }
 
@@ -32,8 +36,11 @@ Test 'get' and 'list' permissions for namespace 'bar':               $ ${SCRIPT_
 Test 'get' and 'list' permissions on 'pods' and 'secrets':           $ ${SCRIPT_NAME} --resources pods,secrets --actions get,list
 
 END_USAGE
+}
 
-    exit 1
+# Make sure an option has a value
+requireValue () {
+    [[ $# -ge 2 && -n "$2" ]] || errorExit "Option $1 requires a value"
 }
 
 # Process command line options. See usage above for supported options
@@ -41,51 +48,55 @@ processOptions () {
     while [[ $# -gt 0 ]]; do
         case "$1" in
             -n | --namespace)
+                requireValue "$@"
                 NAMESPACE="$2"
                 shift 2
             ;;
             -a | --actions)
-                ACTIONS="$(echo $2 | tr ',' ' ')"
+                requireValue "$@"
+                ACTIONS="${2//,/ }"
                 shift 2
             ;;
             -r | --resources)
-                RESOURCES="$(echo $2 | tr ',' ' ')"
+                requireValue "$@"
+                RESOURCES="${2//,/ }"
                 shift 2
             ;;
             -h | --help)
                 usage
+                exit 0
             ;;
             *)
-                usage
+                usage >&2
+                exit 1
             ;;
         esac
     done
 }
 
-# Test connection to a cluster by kubectl
+# Test kubectl is installed and the connection to a cluster
 testConnection () {
-    echo "Testing connection to cluster"
-    kubectl cluster-info > /dev/null || errorExit "Connection to cluster failed"
+    command -v kubectl > /dev/null || errorExit "kubectl not found in PATH"
+    kubectl cluster-info > /dev/null 2>&1 || errorExit "Connection to cluster failed"
 }
 
 canIdo () {
     local resource
     local action
     local resource_list
+    local answer
 
-    if [[ ${RESOURCES} =~ all ]]; then
-        resource_list="$(kubectl api-resources --verbs=list --namespaced -o name)"
+    if [[ "${RESOURCES}" == all ]]; then
+        resource_list="$(kubectl api-resources --verbs=list --namespaced -o name)" || errorExit "Failed getting the list of resources"
     else
         resource_list=${RESOURCES}
     fi
 
-#    echo "List of resources:"
-#    echo "${resource_list}"
-
     for resource in ${resource_list}; do
         for action in ${ACTIONS}; do
-            echo -n "--- Checking ${action} on '${resource}': "
-            kubectl auth can-i "${action}" "${resource}" --namespace="${NAMESPACE}"
+            # 'kubectl auth can-i' exits with 1 when the answer is 'no', so don't treat that as a failure
+            answer=$(kubectl auth can-i "${action}" "${resource}" --namespace="${NAMESPACE}" 2>&1)
+            echo "--- Checking ${action} on '${resource}': ${answer}"
         done
     done
 }

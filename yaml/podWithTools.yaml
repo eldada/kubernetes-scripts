@@ -5,6 +5,9 @@
 ## Deploy: kubectl apply -f podWithTools.yaml
 ## Terminal access: kubectl exec -it pod-with-tools -- bash
 ## Remove: kubectl delete -f podWithTools.yaml
+##
+## SECURITY: The container installs packages and runs the JFrog CLI installer (curl | sh) at startup.
+##           Fine for a throw-away debugging pod, but review it before using anywhere sensitive.
 ###########################################################
 apiVersion: v1
 kind: Pod
@@ -14,7 +17,7 @@ spec:
   terminationGracePeriodSeconds: 5
   containers:
     - name: ubuntu
-      image: ubuntu:24.04
+      image: ubuntu:26.04
       command:
         - 'bash'
         - '-c'

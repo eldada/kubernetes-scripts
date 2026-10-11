@@ -6,8 +6,9 @@
 ## Terminal access: kubectl exec -it super-pod -- bash
 ## Remove: kubectl delete -f superPod.yaml
 ##
-## WARNING: This pod has elevated privileges and can access the host filesystem and processes!
-##          This pod is not secure and should not be used in production environments.
+## WARNING: This pod is privileged, shares the host PID namespace and mounts host paths (read-write)!
+##          Anyone who can exec into it has root on the node. It is not secure and must not be used in production
+##          environments. Remove it as soon as you are done.
 ##
 ## You can restart the kubelet and access the host /var/lib/kubelet and /var/log filesystems.
 ## Restarting kubelet: nsenter -t 1 -m -p -- systemctl restart kubelet
@@ -17,7 +18,9 @@ kind: Pod
 metadata:
   name: super-pod
 spec:
-  automountServiceAccountToken: true
+  # No need for the service account token here, so don't expose it to a privileged pod
+  automountServiceAccountToken: false
+  terminationGracePeriodSeconds: 5
   containers:
     - command:
         - /bin/bash

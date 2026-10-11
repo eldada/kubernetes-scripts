@@ -1,3 +1,7 @@
+## Patch for the metrics-server Deployment to work on Docker Desktop or Kind (kubelet uses a self signed certificate).
+## NOTE: This replaces the whole container args list. Keep it in sync with the args of the metrics-server version you install
+##       (secure-port 10250 is the default since v0.7). For a more robust option, see the README for adding only the one flag.
+## Usage: kubectl patch deployment metrics-server -n kube-system --patch-file metrics-server-patch.yaml
 spec:
   template:
     spec:
@@ -5,8 +9,9 @@ spec:
         - name: metrics-server
           args:
             - --cert-dir=/tmp
-            - --secure-port=4443
+            - --secure-port=10250
             - --kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname
             - --kubelet-use-node-status-port
+            ## INSECURE: Skips verification of the kubelet certificates. For local Docker Desktop/Kind clusters only!
             - --kubelet-insecure-tls
             - --metric-resolution=15s

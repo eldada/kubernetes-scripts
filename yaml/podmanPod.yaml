@@ -6,12 +6,15 @@
 ## Terminal access: kubectl exec -it podman -- bash
 ## Remove: kubectl delete -f podmanPod.yaml
 ## HINT: run alias docker=podman in the container
+##
+## WARNING: The container is privileged, which gives it root access to the node. Use only on disposable/dev clusters.
 ###########################################################
 apiVersion: v1
 kind: Pod
 metadata:
   name: podman
 spec:
+  terminationGracePeriodSeconds: 5
   containers:
     - name: podman
       image: quay.io/podman/stable

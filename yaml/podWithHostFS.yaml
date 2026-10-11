@@ -9,6 +9,13 @@
 ## debugging scenarios like examining the kubelet configuration.
 ## USE WITH CAUTION! Changes here can break your node!
 ##
+## WARNING: Anyone who can exec into this pod gets root on the node (and its kubelet credentials and all pods' secrets).
+##          The pod is privileged and mounts the node root file system read-write. Use only on disposable/dev clusters
+##          and remove it as soon as you are done. The PersistentVolume is cluster scoped, so it is deleted with the file too.
+##          The namespace is labeled as 'privileged' so it works with the Pod Security Admission restricted defaults.
+##
+## SECURITY: The container downloads scripts at startup. The URLs are pinned to a commit so they can't change under you.
+##
 ## Deploy: kubectl apply -f podWithHostFS.yaml
 ## Terminal access: kubectl exec -n 0-danger-zone -it pod-with-host-fs -- bash
 ## Remove: kubectl delete -f podWithHostFS.yaml
@@ -17,6 +24,8 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: 0-danger-zone
+  labels:
+    pod-security.kubernetes.io/enforce: privileged
 ---
 apiVersion: v1
 kind: Pod
@@ -24,9 +33,10 @@ metadata:
   name: pod-with-host-fs
   namespace: 0-danger-zone
 spec:
+  terminationGracePeriodSeconds: 5
   containers:
     - name: container-with-host-fs
-      image: eldada.jfrog.io/docker/ubuntu:22.04
+      image: ubuntu:26.04
       command:
         - 'bash'
         - '-c'
@@ -35,8 +45,8 @@ spec:
           apt update && apt install vim curl -y;
           echo -e "\n\n############# Get scripts...";
           cd /opt;
-          curl -# -O https://raw.githubusercontent.com/eldada/command-examples/master/scripts/top.sh;
-          curl -# -O https://raw.githubusercontent.com/eldada/command-examples/master/scripts/procInfo.sh;
+          curl -# -O https://raw.githubusercontent.com/eldada/command-examples/e702712a0b2c80ff78ac8d0640d8cc3962ba4c2e/scripts/top.sh;
+          curl -# -O https://raw.githubusercontent.com/eldada/command-examples/e702712a0b2c80ff78ac8d0640d8cc3962ba4c2e/scripts/procInfo.sh;
           chmod +x *.sh;
           ls -la;
           echo -e "\n\n############# Going to sleep for 30 days...";

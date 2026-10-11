@@ -2,11 +2,30 @@
 A collection of scripts and commands for various tasks in [Kubernetes](https://kubernetes.io/).<br>
 These were all written during my work with Kubernetes on various project. Enjoy and share. Contributions are more than welcome!
 
+## For agents
+Coding agents working in this repo should follow [AGENTS.md](AGENTS.md).
+It says which script to run, and which manifests to apply only after an explicit ask.
+This file stays the catalog and the command cookbook.
+
+## Requirements
+* `bash` (3.2 or higher, so works on macOS out of the box)
+* [`kubectl`](https://kubernetes.io/docs/tasks/tools/) configured with access to your cluster
+* `jq` (only for [getResourcesCSV.sh](getResourcesCSV.sh))
+* [metrics-server](https://github.com/kubernetes-sigs/metrics-server) in the cluster (only for the scripts using `kubectl top`)
+
 ## Usage
 Each script has a `usage` function. See usage with
 ```shell script
 <script> --help
 ```
+
+All scripts behave the same way:
+* `--help` prints the usage to stdout and exits with `0`. An unknown option prints the usage to stderr and exits with `1`.
+* Errors are printed to stderr and the script exits with `1`. [podReady.sh](podReady.sh) also exits with `1` when the pod is not ready.
+* Data (CSV and results) is printed to stdout. Progress and warning messages go to stderr, so output can be piped safely.
+* CPU is reported in cores and memory in GiB in all the CSV outputs.
+* Namespace is selected with `-n | --namespace`. Scripts that report on a cluster default to all namespaces,
+  and scripts acting on specific pods default to the `default` namespace (except [runCommandOnPods.sh](runCommandOnPods.sh), which requires it explicitly).
 
 ## Scripts
 * [countPodsAndContainerPerNodeCSV.sh](countPodsAndContainerPerNodeCSV.sh): Count number of pods and containers per node. Print in CSV format.
@@ -17,7 +36,7 @@ Each script has a `usage` function. See usage with
 * [getRestartingPods.sh](getRestartingPods.sh): Get all pods (all or single namespace) that have restarts detected in one or more containers. Formatted in CSV.
 * [podReady.sh](podReady.sh): Simple script to check if pod is really ready. Check status is 'Running' and that all containers are ready. Returns 0 if ready. Returns 1 if not ready.
 * [getNodesLoadCSV.sh](getNodesLoadCSV.sh): Traverse over the `kube-proxy` pods to get the nodes load average and number of CPUs in a CSV format. Will also mark high load node with big `YES` in the output.
-* [runCommandOnPods.sh](runCommandOnPods.sh): Run a command on a list of pods.
+* [runCommandOnPods.sh](runCommandOnPods.sh): Run a command on a list of pods (selected by a regex on the pod name).
 * [canIdo.sh](canIdo.sh): Check all or some permissions current user has in a namespace on all or some resources using the `kubectl auth can-i` command.
 
 ## YAML
@@ -25,10 +44,23 @@ Each script has a `usage` function. See usage with
 * [podWithTools.yaml](yaml/podWithTools.yaml): A pod with some basic tools (`vi` and `curl`) for easy debugging.<br>
 * [podWithHostFS.yaml](yaml/podWithHostFS.yaml): A pod with the host root file system mounted into it.<br>
 * [podmanPod.yaml](yaml/podmanPod.yaml): A pod with [podman](https://podman.io/) in it.<br>
-* [superPod](yaml/superPod.yaml): A pod with the host file system and process IDs mounted for allowing to manipulate the host system and restarting kubelet.<br>
+* [superPod.yaml](yaml/superPod.yaml): A pod with the host file system and process IDs mounted for allowing to manipulate the host system and restarting kubelet.<br>
   **WARNING:** There is danger of corrupting your Kubernetes host. Use with extra care!
 * [kind-config.yaml](yaml/kind-config.yaml): An example [kind](https://kind.sigs.k8s.io/) configuration for a multi node K8s cluster
-  **WARNING:** There is danger of corrupting your Kubernetes host. Use with extra care!
+* [metrics-server-patch.yaml](yaml/metrics-server-patch.yaml): A patch for running `metrics-server` on Docker Desktop or Kind. See [Metrics Server](#metrics-server-in-kubernetes-on-docker-desktop-or-kind-for-mac).
+
+## Security
+* `podWithHostFS.yaml`, `superPod.yaml` and `podmanPod.yaml` run **privileged** pods, with access to the node (host file system, host PID namespace).
+  Anyone who can `exec` into them has root on the node and can reach the kubelet credentials and the secrets of all pods on it.
+  Use them only on disposable or development clusters, and delete them as soon as you are done.
+  Clusters enforcing [Pod Security Standards](https://kubernetes.io/docs/concepts/security/pod-security-standards/) will (and should) reject them.
+* `memory.yaml` uses `ubuntu:26.04` and installs `curl` and `vim` at startup, then downloads a script from GitHub. `podWithHostFS.yaml` also downloads scripts at startup. The URLs are pinned to a commit. Review the scripts before moving the pin.
+  `podWithTools.yaml` runs the JFrog CLI installer with `curl | sh`.
+* `runCommandOnPods.sh`, `getPodsLoad.sh` and `getNodesLoadCSV.sh` use `kubectl exec`, so they run commands inside your pods. Double check the namespace and the cluster context first.
+* `canIdo.sh` and the other read scripts are read-only, but their CSV output (names of namespaces, pods and images) may be sensitive. Mind where you store it.
+* Secrets: commands below that print or copy secrets leave values in your terminal scrollback and shell history. Avoid them on shared machines.
+* `--kubelet-insecure-tls` (metrics-server section) disables the verification of kubelet certificates. Use only on local clusters.
+* `superPod.yaml` pulls an image from `eldada.jfrog.io`, a personal mirror that is not versioned in this repo. Replace it with an image you trust (and pin by tag or digest) for your own use.
 
 ## Commands
 ### Kubectl
@@ -49,12 +81,12 @@ kubectl get events --namespace=kube-system
 #### Get all cluster nodes IPs and names
 ```shell script
 # Single call to K8s API
-kubectl get nodes -o json | grep -A 12 addresses
+kubectl get nodes -o wide
 
 # A loop for more flexibility
 for n in $(kubectl get nodes -o name); do \
   echo -e "\nNode ${n}"; \
-  kubectl get ${n} -o jsonpath='{.status.addresses}'; \
+  kubectl get "${n}" -o jsonpath='{.status.addresses}'; \
 done
 ```
 
@@ -109,7 +141,7 @@ kubectl port-forward -n namespace1 svc/web 8080:80
 
 #### Port forwarding
 * A great tool for port forwarding all services in a namespace + adding aliases to `/etc/hosts` is [kubefwd](https://github.com/txn2/kubefwd).
-Note that this requires root or sudo to allow temporary editing of `/etc/host`.
+Note that this requires root or sudo to allow temporary editing of `/etc/hosts`.
 ```shell script
 # Port forward all service in namespace1
 kubefwd svc -n namespace1
@@ -122,8 +154,11 @@ kubectl get secret -n namespace1 my-postgresql -o jsonpath="{.data.postgres-pass
 ```
 
 #### Copy secret from `namespace1` to `namespace2`
+Requires `jq`. Removes the namespace and the server generated fields so the secret can be created in the other namespace.
 ```shell script
-kubectl get secret my-secret --namespace namespace1 -o yaml | sed "/namespace:/d" | kubectl apply --namespace=namespace2 -f -
+kubectl get secret my-secret --namespace namespace1 -o json \
+  | jq 'del(.metadata.namespace, .metadata.uid, .metadata.resourceVersion, .metadata.creationTimestamp, .metadata.ownerReferences, .metadata.managedFields)' \
+  | kubectl apply --namespace=namespace2 -f -
 ```
 
 #### Create an Ubuntu pod
@@ -138,7 +173,7 @@ metadata:
 spec:
   containers:
   - name: my-ubuntu-container
-    image: eldada.jfrog.io/docker/ubuntu:22.04
+    image: ubuntu:24.04
     command:
     - 'bash'
     - '-c'
@@ -146,7 +181,7 @@ spec:
 ZZZ
 
 # Shell into the pod
-kubectl exec -it my-ubuntu-pod bash
+kubectl exec -it my-ubuntu-pod -- bash
 
 # Delete the pod once done
 kubectl delete pod my-ubuntu-pod
@@ -156,13 +191,13 @@ kubectl delete pod my-ubuntu-pod
 Note - Pod will terminate once exited
 ```shell script
 # Ubuntu
-kubectl run my-ubuntu --rm -i -t --restart=Never --image ubuntu -- bash
+kubectl run my-ubuntu --rm -i -t --restart=Never --image ubuntu:24.04 -- bash
 
-# CentOS
-kubectl run my-centos --rm -i -t --restart=Never --image centos:8 -- bash
+# Rocky Linux (CentOS replacement)
+kubectl run my-rocky --rm -i -t --restart=Never --image rockylinux:9 -- bash
 
 # Alpine
-kubectl run my-alpine --rm -i -t --restart=Never --image alpine:3.10 -- sh
+kubectl run my-alpine --rm -i -t --restart=Never --image alpine -- sh
 
 # Busybox
 kubectl run my-busybox --rm -i -t --restart=Never --image busybox -- sh
@@ -230,20 +265,21 @@ and [kubectl node debug](https://kubernetes.io/docs/tasks/debug/debug-cluster/ku
 ##### Pod Debugging
 ```shell script
 # Attach an ephemeral container to an existing container in a pod for debugging
-kubectl debug -it my-pod --image=ubuntu --target=my-container
+kubectl debug -it my-pod --image=ubuntu:24.04 --target=my-container
 ```
 
 ##### Node Debugging
 ```shell script
 # Debug a node with a new pod attached to it
 # IMPORTANT to delete the pods after exiting it. It will not be deleted automatically (although it will be in the "Completed" state)
-kubectl debug node/<mynode> -it --image=ubuntu
+kubectl debug node/<mynode> -it --image=ubuntu:24.04
+# The node root file system is mounted in the pod at /host
 ```
 ### Helm
 
 #### Helm template
 View the templates generated by `helm install`. Useful for seeing the actual templates generated by helm before deploying.<br>
-Can also be used for deploying the templates generated when cannot use Tiller
+Can also be used for deploying the generated templates with `kubectl apply` (for example, when you can't run `helm install`)
 ```shell script
 helm template <chart>
 ```
@@ -301,22 +337,22 @@ Install a `metrics-server`
 kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
 ```
 
-Patch the `metrics-server` Deployment with the fix
+Add the `--kubelet-insecure-tls` argument to the `metrics-server` Deployment. This adds just one argument and keeps all the rest as shipped with the installed version (recommended)
+```shell
+kubectl patch deployment metrics-server -n kube-system --type=json \
+  -p '[{"op":"add","path":"/spec/template/spec/containers/0/args/-","value":"--kubelet-insecure-tls"}]'
+```
+
+**OR** Replace the whole `args` list with [metrics-server-patch.yaml](yaml/metrics-server-patch.yaml). This must match the args of the installed version (`--secure-port` is `10250` since metrics-server v0.7)
 ```shell
 kubectl patch deployment metrics-server -n kube-system --patch-file yaml/metrics-server-patch.yaml
 ```
 
-**OR** Edit the `metrics-server` deployment directly and add `--kubelet-insecure-tls` to the `args` key:
-```yaml
-spec:
-  containers:
-  - args:
-    - --cert-dir=/tmp
-    - --secure-port=443
-    - --kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname
-    - --kubelet-use-node-status-port
-    - --metric-resolution=15s
-    - --kubelet-insecure-tls
+**WARNING:** `--kubelet-insecure-tls` disables the verification of the kubelet certificates. Use it only in local, development clusters.
+
+Verify it works
+```shell
+kubectl top nodes
 ```
 
 ### Resources

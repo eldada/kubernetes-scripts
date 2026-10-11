@@ -1,14 +1,18 @@
 ###########################################################
 ## This file has the configuration for
 ## - A namespace called 0-eldada for isolation
-## - A pod with an ubuntu container installed with some basic tools like vim, curl.
-##   This container runs a script that holds a block of memory for a given time with
+## - A pod on Ubuntu 26.04 LTS. curl and vim are installed at startup, then the
+##   container runs a script that holds a block of memory for a given time with
 ##   an optional gap between memory block runs.
+##   The container runs as root so apt can install those packages. It is not privileged.
 ##
 ## Deploy: kubectl apply -f memory.yaml
-## Update (force replacing with new config): kubectl apply -f memory.yaml --force
+## Update (force replacing with new config): kubectl replace --force -f memory.yaml
 ## Terminal access: kubectl exec -it pod-memory -- bash
 ## Remove: kubectl delete -f memory.yaml
+##
+## SECURITY: The container installs packages and downloads a script at startup. The URL is pinned to a commit so it
+##           can't change under you. Review the script before updating the commit.
 ###########################################################
 apiVersion: v1
 kind: Namespace
@@ -21,21 +25,28 @@ metadata:
   name: pod-memory
   namespace: 0-eldada
 spec:
+  terminationGracePeriodSeconds: 5
   securityContext:
-    runAsUser: 1000
-    fsGroup: 1000
+    seccompProfile:
+      type: RuntimeDefault
   containers:
     - name: container-memory
-      image: eldada.jfrog.io/docker/ubuntu-with-tools:22.10
+      image: ubuntu:26.04
+      workingDir: /tmp
       command:
         - 'bash'
         - '-c'
         - >
+          set -e;
           echo "#######################################";
+          echo "### Installing curl and vim";
+          export DEBIAN_FRONTEND=noninteractive;
+          apt-get update;
+          apt-get install -y --no-install-recommends ca-certificates curl vim;
           echo "### Downloading memory.sh";
-          curl -f -s -o ./memory.sh https://raw.githubusercontent.com/eldada/command-examples/master/scripts/memory.sh;
+          curl -fL -sS -o /tmp/memory.sh https://raw.githubusercontent.com/eldada/command-examples/e702712a0b2c80ff78ac8d0640d8cc3962ba4c2e/scripts/memory.sh;
           echo "### Running memory.sh";
-          bash ./memory.sh --mb ${MEMORY_TO_USE_MB} --wait ${TIME_TO_HOLD} --restart ${RESTART} --gap ${GAP} || exit 1;
+          bash /tmp/memory.sh --mb ${MEMORY_TO_USE_MB} --wait ${TIME_TO_HOLD} --restart ${RESTART} --gap ${GAP};
           echo "Sleeping forever...";
           while true; do date; sleep 10; done
       env:

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # UNCOMMENT this line to enable debugging
 # set -xv
@@ -6,36 +6,37 @@
 ## Get formatted results of kubectl top pod --containers
 
 OUT=top-$(date +"%Y-%m-%d_%H:%M:%S").csv
-NAMESPACE=--all-namespaces
-QUITE=false
+NAMESPACE=default
+QUIET=false
 HEADERS=true
-SCRIPT_NAME=$0
+SCRIPT_NAME=$(basename "$0")
 DURATION=0
 INTERVAL=5
 POD=
-CONTAINERS=
+CONTAINERS=false
 
 ######### Functions #########
 
 errorExit () {
-    echo -e "\nERROR: $1\n"
+    echo -e "\nERROR: $1\n" >&2
     exit 1
 }
 
 usage () {
     cat << END_USAGE
 
-${SCRIPT_NAME} - Get formatted results of kubectl top pod in a Kubernetes cluster for a selected namespace and pod in a CSV format
+${SCRIPT_NAME} - Get formatted results of kubectl top pod in a Kubernetes cluster for a selected namespace and pod in a CSV format.
+                 CPU is in cores and memory is in GiB.
 
 Usage: ${SCRIPT_NAME} <options>
 
--n | --namespace <name>                : Namespace to analyse.      Default: default
--p | --pod <name>                      : Pod to analyse.
+-n | --namespace <name>                : Namespace to analyse.      Default: ${NAMESPACE}
+-p | --pod <name>                      : Pod to analyse (required).
 -d | --duration <seconds>              : Duration of sampling.      Default: ${DURATION} (infinite)
 -i | --interval <seconds>              : Interval between samples.  Default: ${INTERVAL}
 -o | --output <name>                   : Output file.               Default: top-<timestamp>.csv
 -c | --containers                      : Output per container.      Default: off
--q | --quite                           : Don't output to screen.    Default: Output to screen
+-q | --quiet                           : Don't output to screen.    Default: Output to screen
 -h | --help                            : Show this usage
 --no-headers                           : Don't print headers line
 
@@ -43,10 +44,14 @@ Examples:
 ========
 Get for pod foo in namespace bar:                                $ ${SCRIPT_NAME} --namespace bar --pod foo
 Get for pod foo in namespace bar and output to file foo.csv :    $ ${SCRIPT_NAME} --namespace bar --pod foo --output foo.csv
+Sample pod foo in namespace bar every 10 seconds for 5 minutes:  $ ${SCRIPT_NAME} --namespace bar --pod foo --interval 10 --duration 300
 
 END_USAGE
+}
 
-    exit 1
+# Make sure an option has a value
+requireValue () {
+    [[ $# -ge 2 && -n "$2" ]] || errorExit "Option $1 requires a value"
 }
 
 # Process command line options. See usage above for supported options
@@ -54,31 +59,36 @@ processOptions () {
     while [[ $# -gt 0 ]]; do
         case "$1" in
             -n | --namespace)
-                NAMESPACE="--namespace $2"
+                requireValue "$@"
+                NAMESPACE="$2"
                 shift 2
             ;;
             -p | --pod)
+                requireValue "$@"
                 POD="$2"
                 shift 2
             ;;
             -d | --duration)
+                requireValue "$@"
                 DURATION="$2"
                 shift 2
             ;;
             -i | --interval)
+                requireValue "$@"
                 INTERVAL="$2"
                 shift 2
             ;;
             -o | --output)
-                OUT=$2
+                requireValue "$@"
+                OUT="$2"
                 shift 2
             ;;
             -c | --containers)
-                CONTAINERS="--containers"
+                CONTAINERS=true
                 shift 1
             ;;
-            -q | --quite)
-                QUITE=true
+            -q | --quiet | --quite)
+                QUIET=true
                 shift 1
             ;;
             --no-headers)
@@ -90,111 +100,118 @@ processOptions () {
                 exit 0
             ;;
             *)
-                usage
+                usage >&2
+                exit 1
             ;;
         esac
     done
 
-    [ -z "${POD}" ] && errorExit "Must provide pod name (--pod <POD>)"
+    [[ -n "${POD}" ]] || errorExit "Must provide pod name (--pod <POD>)"
+    [[ "${DURATION}" =~ ^[0-9]+$ ]] || errorExit "Duration must be a number of seconds"
+    [[ "${INTERVAL}" =~ ^[0-9]+$ ]] || errorExit "Interval must be a number of seconds"
 }
 
-# Test connection to a cluster by kubectl
+# Test kubectl is installed and the connection to a cluster
 testConnection () {
-    kubectl cluster-info > /dev/null || errorExit "Connection to cluster failed"
-    kubectl get pod ${NAMESPACE} "${POD}" > /dev/null || errorExit "Pod ${POD} not found in namespace ${NAMESPACE}"
+    command -v kubectl > /dev/null || errorExit "kubectl not found in PATH"
+    kubectl cluster-info > /dev/null 2>&1 || errorExit "Connection to cluster failed"
+    kubectl get pod -n "${NAMESPACE}" "${POD}" > /dev/null 2>&1 || errorExit "Pod ${POD} not found in namespace ${NAMESPACE}"
 }
 
+# Convert a CPU value (100m, 250000n, 1) to cores
 formatCpu () {
-    local result=$1
-    if [[ ${result} =~ m$ ]]; then
-        result=$(echo "${result}" | tr -d 'm')
-        result=$(awk "BEGIN {print ${result}/1000}")
-    fi
-
-    echo -n "${result}"
+    awk -v v="$1" 'BEGIN {
+        if (v == "" || v == "-") { print "-"; exit }
+        n = v + 0
+        if (v ~ /n$/) n /= 1e9
+        else if (v ~ /u$/) n /= 1e6
+        else if (v ~ /m$/) n /= 1e3
+        printf "%.3f\n", n
+    }'
 }
 
+# Convert a memory value (Ki, Mi, Gi, Ti, k, M, G, T, m, plain bytes) to GiB
 formatMemory () {
-    local result=$1
-    if [[ ${result} =~ M ]]; then
-        result=$(echo "${result}" | tr -d 'Mi')
-        result=$(awk "BEGIN {print ${result}/1000}")
-    elif [[ ${result} =~ m ]]; then
-        result=$(echo "${result}" | tr -d 'm')
-        result=$(awk "BEGIN {print ${result}/1000000000000}")
-    elif [[ ${result} =~ G ]]; then
-        result=$(echo "${result}" | tr -d 'Gi')
-    fi
+    awk -v v="$1" 'BEGIN {
+        if (v == "" || v == "-") { print "-"; exit }
+        n = v + 0
+        if (v ~ /Ki$/) n *= 1024
+        else if (v ~ /Mi$/) n *= 1024 ^ 2
+        else if (v ~ /Gi$/) n *= 1024 ^ 3
+        else if (v ~ /Ti$/) n *= 1024 ^ 4
+        else if (v ~ /k$/) n *= 1e3
+        else if (v ~ /M$/) n *= 1e6
+        else if (v ~ /G$/) n *= 1e9
+        else if (v ~ /T$/) n *= 1e12
+        else if (v ~ /m$/) n /= 1e3
+        printf "%.3f\n", n / (1024 ^ 3)
+    }'
+}
 
-    echo -n "${result}"
+# Write a line to the output file, and to the screen unless quiet
+emit () {
+    if [[ "${QUIET}" == true ]]; then
+        echo "$1" >> "${OUT}"
+    else
+        echo "$1" | tee -a "${OUT}"
+    fi
 }
 
 getPodsTop () {
-    local condition=true
     local counter=0
-    local line=
-    local time_stamp=
-    local cpu=
-    local memory=
+    local end_time=0
+    local top_args=(top pod -n "${NAMESPACE}" "${POD}" --no-headers)
+    local header="Timestamp,Pod,CPU (cores),Memory (GiB)"
+    local data
+    local time_stamp
+    local container
+    local cpu
+    local memory
+    local name
 
-    if [ "${DURATION}" != 0 ]; then
-        condition="[]"
+    if [[ "${CONTAINERS}" == true ]]; then
+        top_args+=(--containers)
+        header="Timestamp,Pod,Container,CPU (cores),Memory (GiB)"
     fi
+    [[ "${DURATION}" -gt 0 ]] && end_time=$(( $(date +%s) + DURATION ))
 
-    while ${condition}; do
-        line=$(kubectl top pod ${NAMESPACE} "${POD}" --no-headers ${CONTAINERS} --use-protocol-buffers)
-#        echo "--- $line"
-        local final_line=
+    # Start a new output file, with a header line unless disabled
+    : > "${OUT}" || errorExit "Can't write to output file ${OUT}"
+    [[ "${HEADERS}" == true ]] && emit "${header}"
 
-        # Go over all the containers
-        local OLD_IFS=${IFS}
-        IFS=$'\n'
-        for l in ${line}; do
-            local container=""
-            local header="Timestamp,Pod,CPU (cores),Memory (GB)"
+    while true; do
+        if ! data=$(kubectl "${top_args[@]}"); then
+            # Fail on the first sample. Transient failures later on should not stop a long sampling
+            [[ ${counter} -eq 0 ]] && errorExit "Failed running 'kubectl top' (is metrics-server installed and ready?)"
+            echo "WARNING: 'kubectl top' failed. Skipping this sample" >&2
+        else
             time_stamp=$(date +"%Y-%m-%d_%H:%M:%S")
-            if [ -n "${CONTAINERS}" ]; then
-                container=$(echo "${l}" | awk '{print $2}')
-                cpu=$(formatCpu "$(echo "${l}" | awk '{print $3}')")
-                memory=$(formatMemory "$(echo "${l}" | awk '{print $4}')")
-                header="Timestamp,Pod,Container,CPU (cores),Memory (GB)"
-            else
-                cpu=$(formatCpu "$(echo "${l}" | awk '{print $2}')")
-                memory=$(formatMemory "$(echo "${l}" | awk '{print $3}')")
-            fi
-            local out_file=${OUT}
 
-            # Print header in each file if this is the first line
-            if [ ${counter} -eq 0 ]; then
-                if [ "${HEADERS}" == true ]; then
-                    echo "${header}" > "${out_file}"
+            # Go over all the containers
+            while read -r name container cpu memory; do
+                [[ -n "${name}" ]] || continue
+                if [[ "${CONTAINERS}" == true ]]; then
+                    emit "${time_stamp},${POD},${container},$(formatCpu "${cpu}"),$(formatMemory "${memory}")"
                 else
-                    echo -n "" > "${out_file}"
+                    # No container column in this mode, so the values are shifted
+                    emit "${time_stamp},${POD},$(formatCpu "${container}"),$(formatMemory "${cpu}")"
                 fi
-            fi
+            done <<< "${data}"
+        fi
 
-            final_line=${time_stamp},${POD},${cpu},${memory}
-            if [ -n "${CONTAINERS}" ]; then
-                final_line=${time_stamp},${POD},${container},${cpu},${memory}
-            fi
+        counter=$(( counter + 1 ))
 
-            if [ "${QUITE}" == true ]; then
-                echo "${final_line}" >> "${out_file}"
-            else
-                echo "${final_line}" | tee -a "${out_file}"
-            fi
-        done
-        IFS=${OLD_IFS}
-
+        # Done when the duration is over. Duration 0 means sample forever
+        if [[ ${end_time} -gt 0 && $(( $(date +%s) + INTERVAL )) -gt ${end_time} ]]; then
+            break
+        fi
         sleep "${INTERVAL}"
-
-        (( counter++ ))
     done
 }
 
 main () {
     processOptions "$@"
-    [ "${QUITE}" == true ] || echo "Getting Pod memory and cpu usage"
+    [[ "${QUIET}" == true ]] || echo "Getting Pod memory and cpu usage" >&2
     testConnection
     getPodsTop
 }
