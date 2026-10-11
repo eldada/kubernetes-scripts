@@ -98,7 +98,7 @@ processOptions () {
 # Nothing is expanded or executed here.
 splitCommand () {
     local input=$1
-    local word= quote= escaped=0
+    local word='' quote='' escaped=0
     local i char
 
     exec_cmd=()
