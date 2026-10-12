@@ -17,7 +17,7 @@ The README examples that iterate `kubectl ctx` are for a person at the keyboard.
 - `--help` prints usage to stdout and exits 0. An unknown option prints usage to stderr and exits 1.
 - Data goes to stdout. Progress, warnings, and errors go to stderr.
 - CSV CPU values are cores. CSV memory values are GiB.
-- `jq` is required only for `getResourcesCSV.sh`. Scripts that call `kubectl top` need metrics-server.
+- `jq` is required for `getResourcesCSV.sh` and `kapacity.sh`. Scripts that call `kubectl top`, and `kapacity.sh --util`, need metrics-server.
 - `podReady.sh` exits 0 when the pod is Running and every container is ready, and 1 otherwise.
 
 Cluster-wide scripts default to all namespaces. Scripts that act on specific pods default to the `default` namespace. `runCommandOnPods.sh` requires `--namespace`.
@@ -26,7 +26,8 @@ Cluster-wide scripts default to all namespaces. Scripts that act on specific pod
 
 | Task | Command |
 |---|---|
-| Requests, limits, and live usage | `./getResourcesCSV.sh --console-only` |
+| Requests, limits, and live usage per container | `./getResourcesCSV.sh --console-only` |
+| Node and cluster requests, limits, and live usage | `./kapacity.sh` or `./kapacity.sh --util` |
 | Sample one pod's CPU and memory | `./getPodsTopCSV.sh --namespace <ns> --pod <pod> --duration <seconds>` |
 | Pods with container restarts | `./getRestartingPods.sh` |
 | Whether a pod is actually ready | `./podReady.sh --namespace <ns> --pod <pod>` |
@@ -42,6 +43,8 @@ Narrow a cluster script with `--namespace` when the user names one. `canIdo.sh` 
 `getPodsTopCSV.sh` samples until `--duration` seconds have elapsed. Duration `0` (the default) loops until you stop it, so always pass `--duration`. It also writes a CSV. Set `--output` to a path the user asked for, or under `/tmp`, so a timestamped file is not left in the repo.
 
 `getResourcesCSV.sh` writes `resources.csv` in the working directory. Pass `--console-only` unless the user asked for a file.
+
+`kapacity.sh` prints a table. CPU is millicores and memory is MiB. `--util` reads the metrics API. With more than one node, the first row `*` is the cluster total. `--total` prints only that row. Narrow it with `--namespace`. It is inspired by https://github.com/robscott/kube-capacity.
 
 `getNodesLoadCSV.sh` execs into the `kube-proxy` pods in `kube-system`. `getPodsLoad.sh` execs `cat /proc/loadavg` into the selected pods (default namespace `default`; limit them with `--include`). `runCommandOnPods.sh` runs `--exec` directly, not through a shell. Pipes need `--exec "sh -c '...'"`; limit pods with `--pods <regex>`.
 

@@ -10,8 +10,8 @@ This file stays the catalog and the command cookbook.
 ## Requirements
 * `bash` (3.2 or higher, so works on macOS out of the box)
 * [`kubectl`](https://kubernetes.io/docs/tasks/tools/) configured with access to your cluster
-* `jq` (only for [getResourcesCSV.sh](getResourcesCSV.sh))
-* [metrics-server](https://github.com/kubernetes-sigs/metrics-server) in the cluster (only for the scripts using `kubectl top`)
+* `jq` (for [getResourcesCSV.sh](getResourcesCSV.sh) and [kapacity.sh](kapacity.sh))
+* [metrics-server](https://github.com/kubernetes-sigs/metrics-server) in the cluster (only for the scripts using `kubectl top`, and for `kapacity.sh --util`)
 
 ## Usage
 Each script has a `usage` function. See usage with
@@ -33,6 +33,7 @@ All scripts behave the same way:
 * [getPodsLoad.sh](getPodsLoad.sh): Get formatted results of pods in a namespace underlying node's load average (using cat /proc/loadavg).
 * [getPodsTopCSV.sh](getPodsTopCSV.sh): Get a pod's cpu and memory usage (optionally per container) written as CSV formatted file.
 * [getResourcesCSV.sh](getResourcesCSV.sh): Get all pods resources requests, limits and actual usage per container in a CSV format with values normalized.
+* [kapacity.sh](kapacity.sh): Node and cluster CPU and memory requests, limits, and (with `--util`) live usage, as a table. CPU is in millicores and memory is in MiB. Inspired by [kube-capacity](https://github.com/robscott/kube-capacity).
 * [getRestartingPods.sh](getRestartingPods.sh): Get all pods (all or single namespace) that have restarts detected in one or more containers. Formatted in CSV.
 * [podReady.sh](podReady.sh): Simple script to check if pod is really ready. Check status is 'Running' and that all containers are ready. Returns 0 if ready. Returns 1 if not ready.
 * [getNodesLoadCSV.sh](getNodesLoadCSV.sh): Traverse over the `kube-proxy` pods to get the nodes load average and number of CPUs in a CSV format. Will also mark high load node with big `YES` in the output.
@@ -99,28 +100,25 @@ kubectl describe nodes | grep -A 3 "Name:\|Resource .*Requests .*Limits" | grep 
 kubectl describe nodes | grep -A 3 "Resource .*Requests .*Limits"
 ``` 
 
-##### Using kube-capacity
-There is a great CLI for getting a cluster capacity and utilization - [kube-capacity](https://github.com/robscott/kube-capacity).<br>
-Install as described in the [installation](https://github.com/robscott/kube-capacity#installation) section.
+##### Using kapacity.sh
+[kapacity.sh](kapacity.sh) is inspired by [kube-capacity](https://github.com/robscott/kube-capacity). It prints that project's basic node table with kubectl, so there is nothing extra to install. CPU is in millicores and memory is in MiB. Percentages are of allocatable. With more than one node, the first row (`*`) is the cluster total. `--total` prints only that row.
 ```shell script
-# Get cluster current capacity
-kube-capacity
+# Requests and limits
+./kapacity.sh
 
-# Get cluster current capacity with pods breakdown
-kube-capacity --pods
+# Requests, limits, and live usage (needs metrics-server)
+./kapacity.sh --util
 
-# Get cluster current capacity and utilization
-kube-capacity --util
-
-# Displaying available resources
-kube-capacity --available
+# Cluster total only
+./kapacity.sh --total
 
 # Roll over all clusters in your kubectl contexts
-for a in $(kubectl ctx); do echo -e "\n---$a"; kubectl ctx $a; kube-capacity; done
+for a in $(kubectl ctx); do echo -e "\n---$a"; kubectl ctx $a; ./kapacity.sh; done
 
-# Roll over all clusters in your kubectl contexts and get just summary of each cluster
-for a in $(kubectl ctx); do echo -e "\n---$a"; kubectl ctx $a; kube-capacity| grep -B 1 "\*"; done
+# Cluster total for each context
+for a in $(kubectl ctx); do echo -e "\n---$a"; kubectl ctx $a; ./kapacity.sh --total; done
 ```
+The upstream `kube-capacity` CLI still adds `--available`, pod and container rows, sorting, and label or taint filters. Install it from that project if you need those.
 
 #### Get all labels attached to all pods in a namespace
 ```shell script
